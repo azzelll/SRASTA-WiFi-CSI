@@ -1,0 +1,6 @@
+numpy
+scipy
+requests
+pyserial
+tflite-runtime; platform_machine == "armv7l" or platform_machine == "aarch64"
+tensorflow; platform_machine != "armv7l" and platform_machine != "aarch64"

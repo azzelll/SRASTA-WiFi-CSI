@@ -1,0 +1,7 @@
+tensorflow>=2.14
+numpy
+scipy
+h5py
+scikit-learn
+pandas
+requests

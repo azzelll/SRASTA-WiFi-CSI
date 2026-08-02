@@ -1,0 +1,10 @@
+# Local model outputs and edge state; never commit trained artifacts, CSI data, or credentials.
+artifacts/
+data/
+code/config_edge.env
+code/config_blynk.env
+*.sqlite3
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/

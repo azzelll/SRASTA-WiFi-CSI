@@ -1,6 +1,7 @@
 numpy
-scipy
-requests
-pyserial
-tflite-runtime; platform_machine == "armv7l" or platform_machine == "aarch64"
-tensorflow; platform_machine != "armv7l" and platform_machine != "aarch64"
+h5py
+scikit-learn
+joblib
+fastapi
+uvicorn
+# Install platform-compatible tflite-runtime or ai-edge-litert for TCN inference.

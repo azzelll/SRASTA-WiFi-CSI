@@ -49,7 +49,10 @@ class EdgeApiTests(unittest.TestCase):
         machine = StateMachine(confirm_inactivity_s=10.0)
         self.assertEqual(machine.update(0.9, 0.1, 0.0), ("suspected_fall", True))
         self.assertEqual(machine.tick(9.9), ("suspected_fall", False))
-        self.assertEqual(machine.tick(10.0), ("confirmed_fall", True))
+        self.assertEqual(machine.tick(10.0), ("suspected_fall", False))
+        self.assertEqual(machine.update(0.1, 0.0, 10.0), ("suspected_fall", False))
+        for moment in range(11,20): machine.update(0.1,0.0,float(moment))
+        self.assertEqual(machine.update(0.1,0.0,20.0),("confirmed_fall",True))
 
     def test_fastapi_routes_quarantine_queue_and_events(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -61,7 +64,8 @@ class EdgeApiTests(unittest.TestCase):
             runtime.process_queue()
             self.assertEqual(runtime.ingest_json_line("not-json")["status"], "quarantined")
             runtime.observe(0.9, 0.1, 100.0, evidence="test")
-            runtime.tick(110.0, evidence="test")
+            for moment in range(101,111):
+                runtime.observe(0.1, 0.0, float(moment), evidence="test")
             client = TestClient(create_app(runtime))
             self.assertEqual(client.get("/health").status_code, 200)
             status = client.get("/status").json()

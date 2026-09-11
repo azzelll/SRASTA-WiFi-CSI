@@ -1,115 +1,46 @@
-# SRASTA — Backend + AI milestone 50%
+# SRASTA — local caregiver product
 
-Proposal [SRASTA](https://docs.google.com/document/d/15EJxdUXP2X9X5V8FEKO8p9wN2s1fkgW3l0qTIBnsN_s/edit) adalah satu-satunya source of truth produk. Repository ini mengerjakan urutan kerja **Backend + AI** untuk milestone 50%; urutan ini tidak menghapus requirement proposal lain.
-
-## Jalur demo
+SRASTA memproses WiFi CSI secara lokal dan menampilkan lima status caregiver: **standby, normal, inactive, anomaly, critical**. Ruang lingkup mengikuti [proposal produk](https://docs.google.com/document/d/15EJxdUXP2X9X5V8FEKO8p9wN2s1fkgW3l0qTIBnsN_s/edit), `AGENTS.md`, `AGENT.md`, dan `AI_CONTEXT.md`.
 
 ```text
-curated H5/NPZ replay atau strict ESP32-S3 JSONL V1
-  -> validasi + fixed I/Q [imaginary,real] -> amplitude [time,52]
-  -> causal timestamp resampling + Hampel + low-pass + room baseline
-  -> Random Forest sanity baseline / TCN-Lite full INT8 candidate
-  -> normal / suspected_fall / confirmed_fall + SQLite
-  -> FastAPI /health, /status, /events
+ESP32-S3 TX / hotspot HP yang dikonfigurasi
+  -> ESP32-S3 RX LLTF/HT20 -> USB JSONL
+  -> validasi, amplitude [time,52], preprocessing bersama, model/aturan
+  -> lima status, SQLite, alarm lokal
+  -> FastAPI + WebSocket -> dashboard navy/PWA
+  -> opsional Blynk/MQTT (nonaktif secara default)
 ```
 
-Kontrak CSI tetap: LLTF-only HT20, 128 signed int8 byte = 64 pasangan kompleks, `hypot(imaginary, real)`, lalu indeks `6..31` dan `33..58`. Pipeline menolak drift; tidak melakukan resize, padding, atau pergeseran indeks. `manifest.csv` adalah satu-satunya indeks utama dan divalidasi subject/session-disjoint sebelum windowing.
+**Status bukti:** aplikasi lokal tersedia, termasuk simulator berlabel, replay, serial, riwayat/acknowledgement, estimasi napas dengan penahanan saat kualitas rendah, adapter kamera saat anomali, dan notifikasi opsional. Kandidat model tetap **belum layak deployment**. Lihat [bukti engineering](ENGINEERING_EVIDENCE.md) untuk hasil aktual dan batasnya; keberhasilan simulator bukan bukti deteksi jatuh.
 
-## Setup
+## Mulai di Windows
 
-```bash
-cd /Users/Shandy/Documents/Lomba/GEMASTIK/IoT/SRASTA_CSI_Bench_Blynk
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r code/requirements-train.txt
+Jalankan dari root repository ini menggunakan Python 3.12:
+
+```powershell
+python -m venv .venv
+.venv/Scripts/python -m pip install -r code/requirements-train.txt -r code/requirements-dev.txt
+.venv/Scripts/python -m playwright install chromium
+.venv/Scripts/python code/run_edge_service.py --demo --db artifacts/demo.sqlite3
 ```
 
-Untuk Raspberry Pi, install `code/requirements-pi.txt` dan wheel `tflite-runtime` atau `ai-edge-litert` yang kompatibel dengan OS/Python Pi. TensorFlow menjadi fallback untuk environment training, bukan requirement Pi jika salah satu runtime ringan tersedia.
+Buka **http://127.0.0.1:8000**. Panel lab menguji kelima status. Simulator tidak mengaktifkan kamera, GPIO, atau notifikasi eksternal. Tombol panggilan membuka dialog nomor; panggilan hanya diserahkan ke perangkat setelah caregiver menekan **Mulai panggilan**.
 
-## Seluruh test BE + AI
-
-```bash
-PYTHONPATH=code python -m unittest discover -s code/tests -v
+```powershell
+.venv/Scripts/python code/tools/verify_local.py
 ```
 
-Tidak ada skip dependency BE/AI yang boleh dihitung lulus.
+Perintah tersebut memulai server simulator sementara, menjalankan seluruh unit/API/replay test serta pengujian browser desktop/ponsel/offline, lalu menghentikan server miliknya sendiri. Dependensi atau dataset yang hilang menghasilkan kegagalan, bukan skip tersembunyi. Tambahkan `--firmware` untuk build TX/RX setelah setup toolchain.
 
-## Train Random Forest sanity baseline
+- [RUNBOOK_LOCAL.md](RUNBOOK_LOCAL.md): setup, dataset, training, replay, semua status, tes, dan recovery.
+- [HARDWARE_SETUP.md](HARDWARE_SETUP.md): topologi hotspot satu RX, konfigurasi privat, build/flash, verifikasi serial, Pi/kamera/alarm.
+- [ENGINEERING_EVIDENCE.md](ENGINEERING_EVIDENCE.md): perintah dan hasil terukur terbaru.
+- [ENGINEERING_CHECKLIST.md](ENGINEERING_CHECKLIST.md): selesai, belum terbukti, dan blocker eksternal.
 
-```bash
-PYTHONPATH=code python code/train_srasta_rf_baseline.py \
-  --manifest data/curated/esp32_s3_fall_v1/manifest.csv \
-  --data-root data \
-  --out-dir artifacts/srasta_rf_baseline
-```
+## Kontrak dan privasi
 
-Output: `model.joblib`, validation-only `metrics.json`, preprocessing/capture config, split report, dan model card. Locked test tidak dibaca. Baseline ini bukan model submission/deployment.
+LLTF-only HT20, tepat 128 signed byte `[imaginary,real]`; `hypot` dan indeks tetap `6..31,33..58` menghasilkan 52 fitur. Tidak ada resize/padding/pergeseran fitur. Sender, metadata, urutan, timestamp, dan profil divalidasi; frame tidak kompatibel ditolak. Gap memulai ulang pengumpulan jendela. Data terputus tidak membuktikan pengguna diam atau napas berhenti.
 
-## Train dan export TCN-Lite full INT8
+Raw CSI hanya diproses di memori; SQLite/API/dashboard/notifikasi menyimpan ringkasan tanpa MAC/password/video. Kamera membuka perangkat hanya atas anomali dan menghasilkan keypoint, lalu ditutup. GPIO dan layanan eksternal membutuhkan konfigurasi eksplisit. Dashboard default terbatas ke loopback dan memakai pemeriksaan origin/host serta token sesi untuk mutasi. Service worker hanya menyimpan shell statis, tidak status/event/token.
 
-```bash
-PYTHONPATH=code python code/train_srasta_tcn_lite.py \
-  --manifest data/curated/esp32_s3_fall_v1/manifest.csv \
-  --data-root data \
-  --out-dir artifacts/srasta_tcn_lite \
-  --window-length 250 \
-  --epochs 25
-```
-
-Output mencakup FP32 checkpoint/model, `model.tflite`, validation metrics, full-INT8 parity, latency engineering, configs, split report, training config, dan model card. Representative quantization hanya memakai curated **train**. Candidate tetap `not_deployment_ready` bila salah satu gate belum terbukti; `.tflite` tidak boleh diklaim deployable hanya karena berhasil diekspor.
-
-## Replay + FastAPI smoke
-
-```bash
-PYTHONPATH=code python code/api_smoke.py \
-  --model artifacts/srasta_tcn_lite/model.tflite \
-  --replay data/csi-bench/FallDetection/sub_Human/user_U08/act_Fall/env_E22/device_ESP32/session_1000__freq64.h5 \
-  --db artifacts/edge_tcn.sqlite3 \
-  --out artifacts/api_smoke_tcn.json
-```
-
-Smoke ini menjalankan replay nyata, route `/health`, `/status`, `/events`, dan probe state machine sintetis untuk membuktikan persistence `suspected_fall` lalu `confirmed_fall`. Probe sintetis bukan klaim bahwa clip H5 memiliki anotasi event/inactivity.
-
-Service lokal:
-
-```bash
-PYTHONPATH=code python code/run_edge_service.py \
-  --model artifacts/srasta_tcn_lite/model.tflite \
-  --replay data/csi-bench/FallDetection/sub_Human/user_U08/act_Fall/env_E22/device_ESP32/session_1000__freq64.h5 \
-  --db artifacts/edge_service.sqlite3
-```
-
-Query `http://127.0.0.1:8000/health`, `/status`, dan `/events`.
-
-## Bukti milestone mekanis
-
-Command berikut membuat fresh run directory, menjalankan tests, RF train, TCN train/export/parity, API smoke, lalu menulis report. Report tetap ditulis dengan `status: failed` dan exit nonzero jika bukti tidak lengkap.
-
-```bash
-PYTHONPATH=code python code/write_milestone_50.py \
-  --manifest data/curated/esp32_s3_fall_v1/manifest.csv \
-  --data-root data \
-  --replay data/csi-bench/FallDetection/sub_Human/user_U08/act_Fall/env_E22/device_ESP32/session_1000__freq64.h5 \
-  --out artifacts/milestone_50_be_ai.json \
-  --epochs 25
-```
-
-## Ketika ESP32-S3 tersedia
-
-Kirim satu JSON object per baris melalui USB serial dengan exact field V1:
-
-```text
-version, sequence, local_timestamp_us, sender_mac, rssi, noise_floor,
-channel, bandwidth, sig_mode, mcs, rx_state, len,
-first_word_invalid, iq_bytes
-```
-
-`iq_bytes` harus tepat 128 signed integer, sequence/timestamp meningkat, `bandwidth=HT20`, `sig_mode=HT`, dan `rx_state=0`. Host serial reader milestone hardware berikutnya hanya perlu meneruskan tiap baris ke `EdgeRuntime.ingest_json_line()`; decoder/preprocessing/model tidak perlu dibuat ulang. Frame invalid dikarantina sebagai reason terbatas, tanpa raw I/Q di SQLite.
-
-Blynk selalu disabled/fail-closed pada milestone ini. Tidak ada token dibaca, disimpan, atau dikirim.
-
-## Batasan yang jujur
-
-CSI-Bench H5 tidak memiliki raw packet sequence/timestamp, fall onset/offset, post-fall inactivity, atau continuous non-fall exposure. Karena itu event recall/precision/F1, false alerts/hour, H5 packet-drop rate, dan empirical suspected/confirmed latency tetap `not_available`. Inference latency di mesin training adalah pengukuran engineering, bukan bukti Raspberry Pi/hardware.
-
-ESP32-S3 fisik, firmware/serial host, dashboard visual, kamera, mobile, breathing pipeline, model produk empat output, hardware/enclosure, dan notifikasi eksternal tetap requirement proposal dan gap milestone berikutnya. Data external tidak masuk training/evaluasi utama, raw data tidak diubah, dan locked test tetap tertutup sampai model/threshold benar-benar dibekukan. Lihat [docs/baseline_data_plan.md](docs/baseline_data_plan.md) dan [docs/gemastik_2026_delivery_checklist.md](docs/gemastik_2026_delivery_checklist.md).
+Dataset publik tetap lokal, tidak diunggah atau diubah. Split U21 tetap terkunci dan tidak diunduh. Artefak `data/`, model, database, credential, dan hasil build diabaikan Git. Notebook serta `code/runs/` pengguna dipertahankan. Preprocessing versi `causal-v2-raw-history` menolak konfigurasi lama; model harus dilatih ulang, bukan mengganti hash agar terlihat cocok.

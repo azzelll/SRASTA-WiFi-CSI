@@ -62,8 +62,11 @@ _MAC = re.compile(r"^[0-9a-f]{2}(:[0-9a-f]{2}){5}$", re.IGNORECASE)
 class FrameValidator:
     """Validate the active capture profile and retain payload-free quality counters."""
 
-    def __init__(self, profile: CaptureProfile | None = None):
+    def __init__(self, profile: CaptureProfile | None = None, *, expected_sender: str | None = None):
         self.profile = profile or CaptureProfile()
+        self.expected_sender = expected_sender.lower() if expected_sender else None
+        if self.expected_sender and not _MAC.fullmatch(self.expected_sender):
+            raise ValueError("expected sender must be a MAC address")
         self._last_sequence: int | None = None
         self._last_timestamp_us: int | None = None
         self.accepted_frames = 0
@@ -72,6 +75,9 @@ class FrameValidator:
         self.missing_packets = 0
 
     def parse_json_line(self, line: str) -> CSIFrame:
+        if len(line) > 4096:
+            self.quarantined_frames += 1
+            raise FrameValidationError("frame exceeds size limit")
         try:
             payload = json.loads(line)
         except json.JSONDecodeError as exc:
@@ -97,7 +103,7 @@ class FrameValidator:
         if set(payload) != _FIELD_MAP:
             missing = sorted(_FIELD_MAP - set(payload))
             unknown = sorted(set(payload) - _FIELD_MAP)
-            raise FrameValidationError(f"frame schema mismatch; missing={missing}, unknown={unknown}")
+            raise FrameValidationError("frame schema mismatch")
         version = _integer(payload["version"], "version")
         sequence = _integer(payload["sequence"], "sequence")
         timestamp = _integer(payload["local_timestamp_us"], "local_timestamp_us")
@@ -111,11 +117,13 @@ class FrameValidator:
             raise FrameValidationError("frame version or CSI length differs from active capture profile")
         if payload["bandwidth"] != self.profile.bandwidth or payload["sig_mode"] != self.profile.sig_mode:
             raise FrameValidationError("frame radio profile differs from active capture profile")
-        if rx_state != 0 or channel != self.profile.channel or mcs < 0 or sequence < 0 or timestamp < 0:
+        if rx_state != 0 or channel != self.profile.channel or not 0 <= mcs <= 7 or not -127 <= rssi <= 0 or not -127 <= noise_floor <= 0 or not 0 <= sequence < 2**64 or not 0 <= timestamp < 2**63:
             raise FrameValidationError("frame channel/metadata is invalid or receiver reported an error")
         sender_mac = payload["sender_mac"]
         if not isinstance(sender_mac, str) or not _MAC.fullmatch(sender_mac):
             raise FrameValidationError("sender_mac must be a colon-delimited MAC address")
+        if self.expected_sender and sender_mac.lower() != self.expected_sender:
+            raise FrameValidationError("sender differs from the controlled transmitter")
         if not isinstance(payload["first_word_invalid"], bool):
             raise FrameValidationError("first_word_invalid must be boolean")
         iq_bytes = payload["iq_bytes"]
@@ -130,6 +138,7 @@ class FrameValidator:
         if self._last_sequence is not None and sequence > self._last_sequence + 1:
             self.sequence_gap_events += 1
             self.missing_packets += sequence - self._last_sequence - 1
+        self.expected_sender = self.expected_sender or sender_mac.lower()
         self._last_sequence = sequence
         self._last_timestamp_us = timestamp
         self.accepted_frames += 1

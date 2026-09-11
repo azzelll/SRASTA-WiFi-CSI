@@ -13,6 +13,7 @@ from .decoder import FEATURE_COUNT
 
 @dataclass(frozen=True)
 class PreprocessConfig:
+    algorithm_version: str = "causal-v2-raw-history"
     target_rate_hz: float = 100.0
     max_gap_s: float = 0.05
     hampel_window: int = 7
@@ -25,6 +26,8 @@ class PreprocessConfig:
     capture_profile_hash: str = ""
 
     def __post_init__(self) -> None:
+        if self.algorithm_version != "causal-v2-raw-history":
+            raise ValueError("unsupported preprocessing algorithm; retrain the model")
         if self.target_rate_hz <= 0 or self.max_gap_s <= 0 or self.lowpass_hz <= 0:
             raise ValueError("preprocessing rates and gaps must be positive")
         if self.hampel_window < 1 or self.hampel_sigma <= 0 or self.baseline_warmup_frames < 1:
@@ -41,6 +44,8 @@ class PreprocessConfig:
 
     @classmethod
     def from_json(cls, payload: dict[str, object]) -> "PreprocessConfig":
+        if payload.get("algorithm_version") != "causal-v2-raw-history":
+            raise ValueError("legacy preprocessing requires retraining, not config relabelling")
         names = {field.name for field in fields(cls)}
         config = cls(**{name: payload[name] for name in names if name in payload})
         expected = payload.get("hash")
@@ -98,7 +103,9 @@ class CausalPreprocessor:
     def _hampel(self, values: np.ndarray) -> np.ndarray:
         output = values.copy()
         for index in range(self.config.hampel_window, len(values)):
-            history = output[index - self.config.hampel_window : index]
+            # Measured history lets sustained changes become the baseline; filtered
+            # history can stay flat forever after rejecting one legitimate step.
+            history = values[index - self.config.hampel_window : index]
             median = np.median(history, axis=0)
             mad = np.median(np.abs(history - median), axis=0)
             limit = self.config.hampel_sigma * 1.4826 * mad

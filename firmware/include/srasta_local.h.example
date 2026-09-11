@@ -1,0 +1,4 @@
+// Copy to srasta_local.h only if the default channel/pair must change.
+#define SRASTA_CHANNEL 1
+#define SRASTA_TX_MAC {0x02,0x00,0x00,0x00,0x00,0x01}
+#define SRASTA_RATE_HZ 100

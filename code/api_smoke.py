@@ -27,7 +27,8 @@ def main() -> None:
         runtime.machine.state = "normal"
         runtime.machine.last_motion_s = None
         suspected = runtime.observe(0.99, runtime.machine.motion_threshold * 2, 1000.0, evidence="synthetic_state_machine_probe")
-        confirmed = runtime.tick(1000.0 + runtime.machine.confirm_inactivity_s, evidence="synthetic_state_machine_probe")
+        for elapsed in range(1,int(runtime.machine.confirm_inactivity_s)+1):
+            confirmed = runtime.observe(0.1, 0.0, 1000.0 + elapsed, evidence="synthetic_state_machine_probe")
         client = TestClient(create_app(runtime))
         responses = {path: client.get(path) for path in ("/health", "/status", "/events?limit=20")}
         if any(response.status_code != 200 for response in responses.values()):

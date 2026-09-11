@@ -8,3 +8,15 @@ __pycache__/
 *.py[cod]
 .DS_Store
 .venv/
+firmware/.pio/
+firmware/sdkconfig.tx
+firmware/sdkconfig.rx
+firmware/sdkconfig.tx.old
+firmware/sdkconfig.rx.old
+firmware/include/srasta_local.h
+*.sqlite3-wal
+*.sqlite3-shm
+.platformio-local/
+.sites-runtime/
+firmware/include/srasta_hotspot.local.h
+firmware/sdkconfig.rx_hotspot*

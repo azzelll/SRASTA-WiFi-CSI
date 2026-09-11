@@ -28,8 +28,13 @@ class StateMachine:
     confirm_inactivity_s: float = 10.0
     state: str = "normal"
     last_motion_s: float | None = None
+    last_observed_s: float | None = None
+    max_observation_gap_s: float = 3.0
 
     def update(self, probability: float, motion_energy: float, now_s: float) -> tuple[str, bool]:
+        if self.last_observed_s is not None and now_s-self.last_observed_s > self.max_observation_gap_s:
+            self.last_motion_s = now_s if self.state == "suspected_fall" else None
+        self.last_observed_s = now_s
         if motion_energy >= self.motion_threshold:
             self.last_motion_s = now_s
         if self.state == "normal" and probability >= self.fall_threshold and motion_energy >= self.motion_threshold:
@@ -44,9 +49,8 @@ class StateMachine:
         return self.state, False
 
     def tick(self, now_s: float) -> tuple[str, bool]:
-        if self.state == "suspected_fall" and self.last_motion_s is not None and now_s - self.last_motion_s >= self.confirm_inactivity_s:
-            self.state = "confirmed_fall"
-            return self.state, True
+        # A wall-clock timer cannot establish post-fall inactivity when packets stop.
+        # Confirmation occurs only from a subsequent measured update().
         return self.state, False
 
 
@@ -109,6 +113,9 @@ class TFLiteInference:
         training = json.loads(training_path.read_text())
         if training.get("representative_dataset") != "curated ESP32-S3 train split only" or not isinstance(training.get("manifest_sha256"), str):
             raise ValueError("TFLite artifact representative-data provenance is invalid")
+        parity_path=model_path.parent/"parity.json"
+        if not parity_path.is_file() or json.loads(parity_path.read_text()).get("status") != "passed":
+            raise ValueError("TFLite conversion parity is missing or failed; candidate cannot run")
         self.model = TFLiteModel(model_path)
         self.window_length = self.model.window_length
         if training.get("window_length") != self.window_length:

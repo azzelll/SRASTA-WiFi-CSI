@@ -5,3 +5,7 @@ joblib
 fastapi
 uvicorn
 # Install platform-compatible tflite-runtime or ai-edge-litert for TCN inference.
+pyserial==3.5
+websockets==17.1
+paho-mqtt==2.1.0
+httpx>=0.28.1

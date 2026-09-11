@@ -40,6 +40,7 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=25)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--pretrain-esp-fi", type=Path)
     args = parser.parse_args()
     if args.window_length <= 0 or args.epochs <= 0 or args.batch_size <= 0:
         raise ValueError("window length, epochs, and batch size must be positive")
@@ -63,6 +64,11 @@ def main() -> None:
     x_validation, y_validation = load_windows(rows, "validation", data_root, processor, args.window_length)
 
     model = build_tcn_lite(args.window_length, args.seed)
+    pretraining = None
+    if args.pretrain_esp_fi:
+        from srasta_csi.pretraining import pretrain_esp_fi
+        pretraining = pretrain_esp_fi(model,args.pretrain_esp_fi,processor)
+        (args.out_dir / "pretraining_provenance.json").write_text(json.dumps(pretraining,indent=2))
     counts = np.bincount(y_train, minlength=2)
     if np.any(counts == 0):
         raise ValueError("TCN training split must contain both classes")
@@ -84,7 +90,9 @@ def main() -> None:
     )
     model_path = args.out_dir / "model.keras"
     model.save(model_path)
-    representative_count = min(len(x_train), 128)
+    # Use all grouped training records so both labels and every train subject
+    # participate; the manifest is not guaranteed to be randomly ordered.
+    representative_count = len(x_train)
     tflite_path = export_full_int8(model, x_train[:representative_count], args.out_dir / "model.tflite")
     runtime = TFLiteModel(tflite_path)
     parity = parity_report(model, runtime, x_validation)
@@ -101,7 +109,9 @@ def main() -> None:
         "int8_parity": parity["status"] == "passed",
         "event_and_false_alert_evidence_available": False,
     }
+    float_classification = classification_metrics(y_validation,np.argmax(model.predict(x_validation,verbose=0),axis=1))
     metrics = {
+        "float_validation_classification": float_classification,
         "evaluation": "grouped subject/session-disjoint validation; one centered window per recording",
         "validation_classification": classification,
         "parity": parity,
@@ -112,6 +122,7 @@ def main() -> None:
         "unavailable": unavailable_event_metrics(),
     }
     training = {
+        "pretraining": pretraining,
         "seed": args.seed,
         "epochs_requested": args.epochs,
         "epochs_completed": len(history.history["loss"]),

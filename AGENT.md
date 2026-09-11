@@ -289,3 +289,22 @@ checklist/evidence. Do not repeat completed work or wait idle for absent hardwar
 when independent engineering is available. GitHub branch at this checkpoint:
 `agent/rebuild-be-ai-milestone`; follow the existing branch unless the user
 requests another one. A future branch created by Codex should use `codex/`.
+
+
+### GitHub publication status at handoff
+
+The implementation checkpoint was committed locally as `6f22d70` on
+`agent/rebuild-be-ai-milestone`. The requested push to
+`https://github.com/azzelll/SRASTA-WiFi-CSI.git` was rejected with HTTP 403:
+the available GitHub credential lacked repository write access. A follow-up
+handoff documentation commit may follow it. Publication is **not confirmed**
+at this checkpoint; a new GitHub-only clone will not contain the new product
+until an authorized push succeeds.
+
+The user has already authorized pushing this work. After repository access is
+resolved, inspect local/remote heads and push the reviewed commits normally;
+never force-push, change repository destination or publish private artifacts
+to work around missing access. The user was asked to either log in with an
+account having write access or grant the existing account write access.
+Do not remove credentials or change the global account silently. Verify the
+remote commit before reporting a successful push.

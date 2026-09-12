@@ -107,4 +107,10 @@ Pengguna meminta pembaruan AGENT.md, prompt kelanjutan dan push GitHub. Handoff 
 
 Pemeriksaan layanan pada awal handoff menunjukkan serial fresh dan inference ready, state standby, 207.026 frame diterima. Counter kumulatifnya mencatat 2 frame ditolak, 402 gap, gap terpanjang sekitar 427,59 detik dan 2 reconnect. Angka ini termasuk riwayat gangguan, tidak menyatakan uptime panjang lulus. Penyebab gap dan pemulihan USB tetap pekerjaan aktif.
 
-Push checkpoint implementasi `6f22d70` ke origin ditolak GitHub HTTP 403 karena kredensial yang tersedia tidak memiliki akses tulis repository. Tidak melakukan force-push, perubahan tujuan/fork, atau penghapusan kredensial. Commit tetap lokal; publikasi menunggu login akun berizin atau pemberian akses. Status ini harus diverifikasi ulang pada sesi kelanjutan dan tidak dilaporkan sebagai push berhasil.
+Percobaan push awal checkpoint implementasi `6f22d70` ditolak GitHub HTTP 403 karena kredensial saat itu tidak memiliki akses tulis repository. Tidak melakukan force-push, perubahan tujuan/fork, atau penghapusan kredensial. Kendala ini kemudian terselesaikan sesuai catatan 2026-09-12 berikut.
+
+## Publikasi GitHub - 2026-09-12
+
+Setelah pengguna mengonfirmasi akses GitHub telah diberikan, push normal ke `origin` pada cabang `agent/rebuild-be-ai-milestone` berhasil. Remote bergerak dari `5d629c6` ke `823811f`, mencakup implementasi `6f22d70` dan handoff `823811f`. Pemeriksaan remote mengembalikan SHA `823811f42814c37803d4d44a43d5748853948885`, identik dengan HEAD lokal, dan direktori kerja bersih sebelum pembaruan catatan publikasi ini.
+
+Pembaruan ini hanya mengubah dokumentasi status publikasi; hasil pengujian perangkat lunak checkpoint tetap berlaku. Data, model, kredensial hotspot dan artefak pengukuran yang diabaikan Git tetap lokal. Keberhasilan push tidak menyatakan produk final sudah tervalidasi; enam tahap penerimaan dalam AGENT.md tetap berlaku.

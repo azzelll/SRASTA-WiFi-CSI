@@ -291,20 +291,24 @@ when independent engineering is available. GitHub branch at this checkpoint:
 requests another one. A future branch created by Codex should use `codex/`.
 
 
-### GitHub publication status at handoff
+### GitHub publication status - updated 2026-09-12
 
-The implementation checkpoint was committed locally as `6f22d70` on
-`agent/rebuild-be-ai-milestone`. The requested push to
-`https://github.com/azzelll/SRASTA-WiFi-CSI.git` was rejected with HTTP 403:
-the available GitHub credential lacked repository write access. A follow-up
-handoff documentation commit may follow it. Publication is **not confirmed**
-at this checkpoint; a new GitHub-only clone will not contain the new product
-until an authorized push succeeds.
+GitHub access is resolved. After the user confirmed access was granted, a
+normal push to `https://github.com/azzelll/SRASTA-WiFi-CSI.git` succeeded on
+`agent/rebuild-be-ai-milestone`. The remote branch was verified at
+`823811f42814c37803d4d44a43d5748853948885`, matching local HEAD and including
+the implementation checkpoint `6f22d70` plus the handoff documentation.
+This publication-status update follows that verified checkpoint.
 
-The user has already authorized pushing this work. After repository access is
-resolved, inspect local/remote heads and push the reviewed commits normally;
-never force-push, change repository destination or publish private artifacts
-to work around missing access. The user was asked to either log in with an
-account having write access or grant the existing account write access.
-Do not remove credentials or change the global account silently. Verify the
+The earlier HTTP 403 is historical, not a current blocker. The user has
+already authorized pushing this work. Continue on the existing branch unless
+instructed otherwise; inspect local/remote heads and use normal pushes.
+Never force-push, change the repository destination, publish private artifacts,
+or silently change credentials to work around access problems. Verify the
 remote commit before reporting a successful push.
+
+Clone the repository and check out `agent/rebuild-be-ai-milestone` to access
+the committed product code and handoff. Ignored local data, models, credentials,
+build outputs and measurement artifacts remain
+local; follow the reproduction notes above when continuing on another machine.
+Publication does not close the six remaining product acceptance workstreams.

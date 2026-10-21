@@ -1,0 +1,4 @@
+# Preserve generated CSV bytes/checksums, including their original CRLF endings.
+data/curated/**/*.csv -text whitespace=cr-at-eol
+# Preserve the upstream font license text verbatim.
+web/public/figma/Inter-OFL.txt -whitespace

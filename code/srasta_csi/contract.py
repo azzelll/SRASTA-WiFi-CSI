@@ -8,7 +8,7 @@ import re
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from .decoder import RAW_IQ_BYTE_COUNT
+from .decoder import RAW_IQ_BYTE_COUNT, SUBCARRIER_ORDERS
 
 
 class FrameValidationError(ValueError):
@@ -24,14 +24,26 @@ class CaptureProfile:
     channel: int = 1
     iq_order: str = "imaginary_real"
     raw_len: int = RAW_IQ_BYTE_COUNT
+    subcarrier_order: str = "centered"
+
+    def __post_init__(self) -> None:
+        if self.subcarrier_order not in SUBCARRIER_ORDERS:
+            raise ValueError("unsupported subcarrier order")
+
+    def _fields(self) -> dict[str, object]:
+        fields = asdict(self)
+        # Preserve hashes of existing centered corpus/model/archive profiles.
+        if self.subcarrier_order == "centered":
+            fields.pop("subcarrier_order")
+        return fields
 
     @property
     def hash(self) -> str:
-        body = json.dumps(asdict(self), sort_keys=True, separators=(",", ":"))
+        body = json.dumps(self._fields(), sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(body.encode("utf-8")).hexdigest()
 
     def to_json(self) -> dict[str, object]:
-        return {**asdict(self), "hash": self.hash}
+        return {**self._fields(), "hash": self.hash}
 
 
 @dataclass(frozen=True)
@@ -149,6 +161,11 @@ class FrameValidator:
             "last_sequence": self._last_sequence,
             "last_timestamp_us": self._last_timestamp_us,
         }
+
+    def reset_stream(self) -> None:
+        """Start a new physical session without losing cumulative loss counters."""
+        self._last_sequence = None
+        self._last_timestamp_us = None
 
     @staticmethod
     def quarantine(reason: Exception | str, payload: object | None = None) -> dict[str, str]:

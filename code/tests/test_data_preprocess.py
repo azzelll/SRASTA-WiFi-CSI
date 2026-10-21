@@ -13,6 +13,44 @@ from srasta_csi.preprocess import CausalPreprocessor, PreprocessConfig
 
 
 class DataPreprocessTests(unittest.TestCase):
+    def test_log_difference_handles_zero_baseline_without_flat_saturation(self):
+        processor = CausalPreprocessor(PreprocessConfig(normalization_mode="log_difference", normalized_clip=2.0))
+        values = np.tile(np.linspace(0, 3, 100, dtype=np.float32)[:, None], (1, 52))
+        output = processor.transform(values, timestamps(100))
+        self.assertTrue(np.isfinite(output).all())
+        self.assertLess(float(output.max()), 2.0)
+        self.assertGreater(float(np.std(output[:, 0])), .1)
+        np.testing.assert_array_equal(output[:70], processor.transform(values[:70], timestamps(70)))
+        self.assertEqual(PreprocessConfig.from_json(processor.config.to_json()), processor.config)
+
+    def test_raw_hampel_history_preserves_sustained_motion_and_rejects_single_spike(self):
+        processor = CausalPreprocessor(PreprocessConfig(hampel_history="raw", normalized_clip=2.0))
+        values = np.full((70, 52), 10.0, dtype=np.float32)
+        values[15, 0] = 1000.0
+        values[35:] = 20.0
+        filtered = processor._hampel(values)
+        self.assertEqual(filtered[15, 0], 10.0)
+        np.testing.assert_array_equal(filtered[-10:], values[-10:])
+        full = processor.transform(values, timestamps(len(values)))
+        prefix = processor.transform(values[:50], timestamps(50))
+        np.testing.assert_array_equal(full[:50], prefix)
+        self.assertGreater(float(full[-10:].mean()), .1)
+        self.assertEqual(PreprocessConfig.from_json(processor.config.to_json()), processor.config)
+
+    def test_optional_normalization_bound_keeps_shape_causality_and_legacy_hash(self):
+        import hashlib
+        import json
+        legacy = {key: value for key, value in PreprocessConfig(capture_profile_hash="abc").to_json().items() if key not in {"hash", "normalized_clip"}}
+        legacy["hash"] = hashlib.sha256(json.dumps(legacy, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        self.assertEqual(PreprocessConfig.from_json(legacy).hash, legacy["hash"])
+        processor = CausalPreprocessor(PreprocessConfig(normalized_clip=2.0))
+        values = np.ones((100, 52), dtype=np.float32)
+        values[:2] = 0
+        result = processor.transform(values, timestamps(len(values)))
+        self.assertEqual(result.shape, values.shape)
+        self.assertLessEqual(float(np.max(np.abs(result))), 2.0)
+        np.testing.assert_array_equal(result[:70], processor.transform(values[:70], timestamps(70)))
+
     def test_h5_axis_conversion(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "fixture.h5"

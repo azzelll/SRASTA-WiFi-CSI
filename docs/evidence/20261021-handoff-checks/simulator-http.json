@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "mode": "isolated simulator",
+  "http_routes": [
+    "/",
+    "/api/caregiver"
+  ],
+  "source": "simulator",
+  "hardware_accuracy_proven": false,
+  "external_adapters": "disabled by --env /dev/null; alarm disabled"
+}

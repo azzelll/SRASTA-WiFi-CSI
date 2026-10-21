@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "ltf": "LLTF",
+  "bandwidth": "HT20",
+  "sig_mode": "HT",
+  "channel": 1,
+  "iq_order": "imaginary_real",
+  "raw_len": 128,
+  "hash": "21a883834095a89024ad75c9ac2494640fd574aa748d456a30baf4477f4a360e"
+}

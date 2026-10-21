@@ -1,5 +1,9 @@
 # SRASTA Full-Product Agent Rules
 
+Latest team checkpoint: read `HANDOFF.md` (21 October 2026) and
+`docs/CAPTURE_QUICKSTART.md` for current model selection, clone setup and
+capture behavior. Historical defaults in older evidence are not live status.
+
 This file supplements the repository's `AGENTS.md`; it does not replace it.
 Follow both, resolving conflicts in favour of direct user instructions and the
 product proposal.

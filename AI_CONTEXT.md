@@ -1,5 +1,16 @@
 # SRASTA AI and Edge Backend Context
 
+## Team handoff, 21 October 2026
+
+Start with `HANDOFF.md` for current state, selected artifacts and priorities;
+`docs/CAPTURE_QUICKSTART.md` for actual recorder behavior, and
+`docs/AI_CONTINUATION_PROMPT.md` for an AI continuation brief. The user authorised
+publishing selected model snapshots for team continuity. Raw CSI, private
+configuration, databases, source data and other experiments remain local.
+Software verification at this checkpoint is recorded separately in
+`docs/evidence/20261021-github-handoff.md`; no fresh Pi/cloud/camera acceptance
+is implied. Latest Pi burst software still needs installation and physical QA.
+
 ## Product context
 
 The Google Docs proposal is SRASTA's **immutable product source of truth**:
@@ -24,6 +35,50 @@ The current CSI fall-detection implementation workstream is:
   implementation gap without de-scoping it.
 
 ## Important current audit
+
+### Camera bursts and caregiver resilience, 19 October 2026
+
+Production camera code now examines three event-only frames, requiring two
+agreeing reliable postures without an opposing reliable frame. Partial,
+cropped, missing and conflicting bodies remain uncertain, never automatically
+empty. One measured pose is retained; neither postures nor coordinates are
+invented. This is an engineering rule, not new accuracy validation.
+
+The deployed web app adds selected-event evidence and explicit pending/applied/
+expired/rejected caregiver responses. Camera persistence retry, worker recovery,
+cloud batch validation and durable command redelivery are exercised by fault
+tests; serial reconnect is tested with a real local PTY. Backend 119 tests, web
+30 tests, local SQL checks, offline integration and synthetic browser component
+QA pass. Pi updates are packaged separately and are not installed in this
+session. See `docs/evidence/20261019-caregiver-hardening.md` for boundaries.
+
+### Event skeleton display, 19 October 2026
+
+The caregiver camera panel now renders actual MoveNet COCO17 coordinates from
+one event capture, rather than a posture illustration. The bounded pose summary
+is persisted locally and accepted by the cloud snapshot contract; source images
+and raw CSI remain on edge. The panel only shows a result for the matching,
+fresh, live event UID. `horizontal` means lying/horizontal posture, not confirmed
+sleep or a confirmed fall; `not_horizontal` means upright, potentially sitting
+or standing. Weak/missing points are not replaced by an invented skeleton.
+
+Backend, cloud contract and UI checks pass, including synthetic visual previews.
+The web UI and cloud function are deployed. Updated Pi software is packaged
+separately; it has not been installed or exercised with the real camera in this
+session. See `docs/evidence/20261019-camera-skeleton.md` for evidence boundaries.
+
+### Offline development, 19 October 2026
+
+Fall v8 remains the demo selection after temporal-feature and per-channel TCN
+ablations failed to meet joint 80% recall/specificity. New public-source
+presence reaches 75.3%/75.3% on reused development validation, but sleep recall
+is only 50.6%. A trained empty/sleep/normal research candidate uses HAR
+`seated-breathing` as a source-confounded normal proxy; it is not local ESP32
+validation. Keep research artifacts out of live loaders. See
+`docs/evidence/20261019-offline-model-development.md` for protocols, invalidated
+runs, hashes, integration evidence and remaining work. A new Pi archive has
+passed extracted-package software checks on Mac only; it has not been deployed
+or checked on Pi ARM in this session.
 
 Do not reuse the existing trained artifact as evidence of performance:
 
@@ -64,6 +119,24 @@ amplitude_64 = np.hypot(iq[:, 0], iq[:, 1])
 usable_indices = list(range(6, 32)) + list(range(33, 59))
 amplitude_52 = amplitude_64[usable_indices]
 ```
+
+The fixed mask above is in **centered frequency order** (`-32..31`), as used
+by the audited CSI-Bench amplitudes. Live ESP-IDF HT20 LLTF buffers use
+`0..31,-32..-1`. On 5 October 2026, a 263-frame hardware probe confirmed
+native null positions `0,27..37`, whereas the centered corpus has null
+positions `0..5,32,59..63`. Applying the centered mask directly to native
+bytes admitted 10 null channels and omitted 10 active frequencies.
+
+For this firmware, explicitly declare
+`CaptureProfile(subcarrier_order="esp_idf_native")` / CLI
+`--subcarrier-order esp_idf_native`. Mask invalid native byte positions
+first, then map the complete 64-amplitude vector to centered frequency
+coordinates with `fftshift`, and apply the same fixed 52-index mask.
+This is a declared physical frequency permutation, without deleting pairs,
+padding, resizing, or choosing a mask from observed values. Raw recordings
+remain byte-for-byte unchanged. The nondefault order is included in the
+capture hash; existing centered model/profile hashes remain unchanged.
+The firmware must be independently verified before selecting an order.
 
 The valid mask is based on the ESP32-S3 CSI-Bench records in this workspace:
 they store 64 positions but only indices `6..31` and `33..58` are non-zero;

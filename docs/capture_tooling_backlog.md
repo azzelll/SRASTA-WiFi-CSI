@@ -20,7 +20,11 @@ and `manifest.csv`. A host capture adapter may project a valid archived frame
 onto the runtime subset for inference; it must not loosen the runtime validator
 or inject archival fields into its strict payload.
 
-## Milestone 1 — host recorder — implemented, fixture-covered
+## Milestone 1 — host recorder — implemented, short hardware pilot verified
+
+As of 1 October 2026, `scripts/collect_local_csi.sh` and the interfaces below
+are present. See [LOCAL_CAPTURE.md](../LOCAL_CAPTURE.md) for the one-command
+flow, actual short pilot, storage, and remaining annotation/model gates.
 
 - `code/tools/record_esp32_capture.py` creates a user-selected session folder
   only outside Git and `data/`, then writes immutable `capture_config.json`
@@ -33,26 +37,40 @@ or inject archival fields into its strict payload.
 - The archive has an explicit projection to the strict inference JSONL subset;
   it does not broaden `srasta_csi.contract.py`.
 
-## Milestone 2 — event annotation and QA — implemented, fixture-covered
+## Milestone 2 — event annotation and QA — core implemented, manifest/export pending
 
-- `code/tools/qa_capture.py` and `code/srasta_csi/capture_qa.py` validate
+- `code/tools/qa_capture.py` and `code/srasta_csi/capture_archive.py` validate
   separate observer events on the receiver monotonic clock, session/config
   consistency, checksums, fixed capture contract, frame ordering, reconciliation,
   no-overlap provenance, and subject/session split consistency.
 - QA validates fall onset, event end, and post-fall inactivity ordering, plus
   nonfall, no-person, interference, calibration, recovery, and aborted events.
-- It emits `qa_report.json`, `checksums.sha256`, and one append-only root-manifest
-  row with `pending`/`accepted`/`rejected`. Acceptance uses the declared
+- Recorder emits `qa_report.json`, `checksums.json`, and an append-only root
+  subject split registry. Reviews are appended separately and subsequent QA
+  reports are versioned. Acceptance uses the declared
   `max_quarantine_fraction`, `max_sequence_gap_fraction`, and
   `minimum_nonfall_observation_s`, never retrospective thresholds.
-- Fixture tests cover valid frames, gaps, duplicates, timestamp reversals,
+- Required fixture tests cover valid frames, gaps, duplicates, timestamp reversals,
   malformed/config-hash/bandwidth/length failures, no raw-IQ quarantine leakage,
   reconciliation failures, and invalid fall timing.
 
-A passing fixture is not a completed hardware pilot. Run a no-fall serial pilot
-and inspect the generated protected local archive before collection.
+The full protocol CSV manifest, versioned accepted derivatives, formal
+provenance review, supervised fall annotation UI, and aggregation across a
+held-out four-class cohort remain open. `capture_metrics.py` measures false
+alert episodes only on accepted, reviewed negatives with prediction coverage;
+it cannot establish recall/specificity or four-class performance.
+
+Short no-fall serial pilot after fixing startup loading: 477 valid frames,
+15.1 seconds, zero quarantine/missing sequence, 41 predictions. Automatic edge
+resume worked. It contains no activity ground truth and is excluded from
+training/final evaluation. The first pilot was rejected for 13% loss and retained.
 
 ## Milestone 3 — firmware emitter
+
+The emitter now exists under `firmware/`; actual LLTF capture has been verified
+through the runtime. Archive recording and guided nonfall annotation now exist;
+independent review and cohort collection remain required. See
+`../HARDWARE_SETUP.md` and the engineering evidence document.
 
 - Add a separate ESP-IDF ESP32-S3 project with a pinned IDF revision.
 - Emit LLTF-only HT20 CSI from the controlled sender as exactly 128 signed

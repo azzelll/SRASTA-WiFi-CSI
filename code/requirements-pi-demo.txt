@@ -1,0 +1,10 @@
+# Deployment versions matching the Mac that generated the public RF artifacts.
+# Use a fresh aarch64 Python 3.13 venv; binary wheels only in install_pi_demo.sh.
+numpy==2.5.1
+h5py==3.14.0
+scikit-learn==1.9.0
+joblib==1.5.3
+fastapi==0.140.13
+uvicorn==0.51.0
+paho-mqtt==2.1.0
+ai-edge-litert==2.2.0

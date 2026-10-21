@@ -1,0 +1,25 @@
+{
+  "window_length": 500,
+  "seed": 42,
+  "epochs_completed": 31,
+  "architecture": {
+    "name": "tcn_500",
+    "length": 500,
+    "channels": 32,
+    "dilations": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ]
+  },
+  "representative_dataset": "curated ESP32-S3 train split only",
+  "representative_window_count": 256,
+  "manifest_sha256": "088477e193c9ea5e1571cd6f36a2450ca888d7c075403cc8f403bc8f64129e29",
+  "classes": [
+    "nonfall",
+    "fall"
+  ],
+  "threshold": 0.4500000000000001
+}

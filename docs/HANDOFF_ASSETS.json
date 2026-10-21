@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "date": "2026-10-21",
+  "authorisation": "Selected model snapshots and generated split metadata included for the owner-requested team GitHub handoff. Raw data and credentials excluded.",
+  "files": [
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/MODEL_CARD.md",
+      "bytes": 398,
+      "sha256": "ddcd30d954e2ab5a6f93857f009f0b5c53761898a6f194dc8ff61296a59c6a85",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/capture_profile.json",
+      "bytes": 223,
+      "sha256": "55939a3f26a751bbccf4bb5d078fb8df0c8c09b1497e63bc93cbc5422e7b1621",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/frozen.json",
+      "bytes": 833,
+      "sha256": "cfe5ad4d49c3e5b43003dd6cddee46758e4452c451db06db3cde9a2596b08f8d",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/history.json",
+      "bytes": 3852,
+      "sha256": "322c914f334a15216c98f2138284a372fb050b7b5a6e7b1d1c4301f45fa68066",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/metrics.json",
+      "bytes": 2776,
+      "sha256": "31829ca50a99d46687cd8ed702dd89c6e3a743ed2ec52b59160d7f61c0066f1f",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/model.keras",
+      "bytes": 516395,
+      "sha256": "99bf26e190ad00482ddf5e80d600e474cf31272b3f9a05d2b7a646ae92c92063",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/model.tflite",
+      "bytes": 65592,
+      "sha256": "ac8ca20e9bd0c70a006b9fc7c410c44e6e887e8ffd1174692be3ac3277436e66",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/motion_calibration.json",
+      "bytes": 1769,
+      "sha256": "c04a85afe6d412d87a05d927bfbbea83b0f159542b9d8bfc81e7fa77add4a652",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/preprocess_config.json",
+      "bytes": 456,
+      "sha256": "270e03fe3f66260886f5dc30c9921acd6d5566328a931bc98324dcea66e82e57",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/split_report.json",
+      "bytes": 6726,
+      "sha256": "4087316e50f7bd7c4b075072dc090be7862be417e5c9650d70cba3765190a835",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/training_config.json",
+      "bytes": 497,
+      "sha256": "c7275243e83245c512e79ccab91fcf63ad7a72a7c2f3235e79dfe3d36f27088a",
+      "purpose": "selected fall demo; validation target not met"
+    },
+    {
+      "path": "artifacts/models/movenet-lightning/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "purpose": "official event-only pose model, not a fall classifier"
+    },
+    {
+      "path": "artifacts/models/movenet-lightning/MODEL_CARD.md",
+      "bytes": 1405,
+      "sha256": "80fe0fc70b77959eb3e1bf7fa6da55e27d8e374c2b885bce0d2b56aad1af4a68",
+      "purpose": "official event-only pose model, not a fall classifier"
+    },
+    {
+      "path": "artifacts/models/movenet-lightning/model.tflite",
+      "bytes": 2894840,
+      "sha256": "cd7cc22fa946e5d146a7b98d496853e1923e22828d3972d579973f27f91bb105",
+      "purpose": "official event-only pose model, not a fall classifier"
+    },
+    {
+      "path": "artifacts/research/20261003-public-occupancy-calibrated/breathing/model.joblib",
+      "bytes": 4117605,
+      "sha256": "41b2cca184418d63528f33535be2230540256b2c206163a3d907472fccede1a1",
+      "purpose": "public-source offline occupancy only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261003-public-occupancy-calibrated/metrics.json",
+      "bytes": 8468,
+      "sha256": "1ed14a7910920d58e5e8fdfbae07f8e0d2e39678fa3bef36ce2e213d0786af01",
+      "purpose": "public-source offline occupancy only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261003-public-occupancy-calibrated/presence/model.joblib",
+      "bytes": 2524344,
+      "sha256": "bfc33cae150779c5773c1057460fec2999b2b0e692b5067309ac3ab1ab55ea02",
+      "purpose": "public-source offline occupancy only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261003-public-occupancy-calibrated/verification.json",
+      "bytes": 7168,
+      "sha256": "45a7348dee5f0d7f78c2479c3ee06b48854ea07d336e3393bdd2c5faaca5110f",
+      "purpose": "public-source offline occupancy only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261019-occupancy-calibrated/breathing/model.joblib",
+      "bytes": 11257614,
+      "sha256": "a218f715344f1b882040a4f7c111713b0b608391b55a6f1787dba1ada4fd5b7f",
+      "purpose": "public-source research candidates only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261019-occupancy-calibrated/breathing_three/model.joblib",
+      "bytes": 353829,
+      "sha256": "46a81a35955985cab3d21359b5da9e84a3fe3d74def182b09b245bd86b80700e",
+      "purpose": "public-source research candidates only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261019-occupancy-calibrated/metrics.json",
+      "bytes": 61346,
+      "sha256": "7ce67a957dcf68d32f1c50cd4d4b546b146146ba026fa521890ff13f336c3f22",
+      "purpose": "public-source research candidates only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261019-occupancy-calibrated/presence/model.joblib",
+      "bytes": 4235476,
+      "sha256": "037e549e3223e4e797bb78ca8ef0ff9ee8d9e4eccbfa0174e91e65b62b0afe9e",
+      "purpose": "public-source research candidates only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261019-occupancy-calibrated/protocol.json",
+      "bytes": 535,
+      "sha256": "ccf781c365e2ac03731fb4717f8c669a40a42c32eaac481f8cf0260fe262e6a4",
+      "purpose": "public-source research candidates only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261019-occupancy-calibrated/verification-final.json",
+      "bytes": 697,
+      "sha256": "96cb424e5811069cc6fb988c233130aab49ed6629eab78096154b304c0a50156",
+      "purpose": "public-source research candidates only; live disabled"
+    },
+    {
+      "path": "artifacts/research/20261019-occupancy-calibrated/verification.json",
+      "bytes": 697,
+      "sha256": "96cb424e5811069cc6fb988c233130aab49ed6629eab78096154b304c0a50156",
+      "purpose": "public-source research candidates only; live disabled"
+    },
+    {
+      "path": "data/curated/esp32_s3_fall_v1/README.md",
+      "bytes": 1466,
+      "sha256": "b9178ff6a506d8361027950ecff8dd0b67e4668550162cd2cae34e16ab9096b0",
+      "purpose": "generated metadata index and split lists only; no raw CSI"
+    },
+    {
+      "path": "data/curated/esp32_s3_fall_v1/dataset_info.json",
+      "bytes": 1125,
+      "sha256": "48c10d91b0d6eba13709b7563286ea8c563ec9c4e2fa2c7a42d65b4b7283075a",
+      "purpose": "generated metadata index and split lists only; no raw CSI"
+    },
+    {
+      "path": "data/curated/esp32_s3_fall_v1/manifest.csv",
+      "bytes": 79995,
+      "sha256": "088477e193c9ea5e1571cd6f36a2450ca888d7c075403cc8f403bc8f64129e29",
+      "purpose": "generated metadata index and split lists only; no raw CSI"
+    },
+    {
+      "path": "data/curated/esp32_s3_fall_v1/splits/excluded.csv",
+      "bytes": 4713,
+      "sha256": "85ae2779e512e8793f92a446abeec681163522fdd4d59ff9fd0f35f1ac0a8229",
+      "purpose": "generated metadata index and split lists only; no raw CSI"
+    },
+    {
+      "path": "data/curated/esp32_s3_fall_v1/splits/test.csv",
+      "bytes": 13710,
+      "sha256": "3868a40647d77fe9d9181ce1e12c1cd435fb1e7792b3460c04c069e5e2af4eaf",
+      "purpose": "generated metadata index and split lists only; no raw CSI"
+    },
+    {
+      "path": "data/curated/esp32_s3_fall_v1/splits/train.csv",
+      "bytes": 48372,
+      "sha256": "f73b8d81f93cf960a062bc8260b90d5e3ac393d0f6338800c90f9546f953868f",
+      "purpose": "generated metadata index and split lists only; no raw CSI"
+    },
+    {
+      "path": "data/curated/esp32_s3_fall_v1/splits/validation.csv",
+      "bytes": 13650,
+      "sha256": "2bf63af9d26e1606ab945439453fd31e6650bbd0ba874a2c99e180ab4109d56d",
+      "purpose": "generated metadata index and split lists only; no raw CSI"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "model_sha256": "ac8ca20e9bd0c70a006b9fc7c410c44e6e887e8ffd1174692be3ac3277436e66",
+  "threshold": 0.4500000000000001,
+  "window_length": 500,
+  "selected_candidate": "v2_classifier_train_calibrated_motion",
+  "frozen_at_s": 1790834391.949781,
+  "test_status": "not_reopened; source v2 U21 result does not validate this trigger",
+  "software_ready": true,
+  "deployment_ready": false,
+  "remaining_gates": [
+    "independent local ESP32-S3 event/FAR evidence",
+    "Pi latency and live capture profile",
+    "presence/inactive four-class labels",
+    "breathing/camera validation"
+  ],
+  "preprocess_config_hash": "3c72e19c465732eb7a07dab8dae24b78e40bf65e99cdff0cdd2d892eabc73a05",
+  "capture_profile_hash": "21a883834095a89024ad75c9ac2494640fd574aa748d456a30baf4477f4a360e",
+  "motion_energy_threshold": 0.0003443831083131954
+}

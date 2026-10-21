@@ -1,0 +1,10 @@
+.env
+.env.*
+node_modules
+scripts
+src/*.test.*
+*.tsbuildinfo
+
+.env.local
+.env.*.local
+__design-check.html

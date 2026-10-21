@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import tempfile
+import hashlib
+import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import h5py
 import numpy as np
@@ -10,9 +13,60 @@ import numpy as np
 from srasta_csi.data import read_h5_amplitude, timestamps
 from srasta_csi.model import TFLiteModel, build_tcn_lite, export_full_int8, parity_report
 from srasta_csi.preprocess import CausalPreprocessor, PreprocessConfig
+from srasta_csi.edge import TFLiteInference, _load_config
+from srasta_csi.contract import CaptureProfile, FrameValidator
 
 
 class TFLiteTests(unittest.TestCase):
+    def test_frozen_preprocessing_rejects_rehashed_motion_gate_change(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory);path = root / "model.tflite"
+            path.write_bytes(b"release fixture")
+            profile = CaptureProfile()
+            config = PreprocessConfig(capture_profile_hash=profile.hash, motion_energy_threshold=.00034)
+            (root / "capture_profile.json").write_text(json.dumps(profile.to_json()))
+            (root / "preprocess_config.json").write_text(json.dumps(config.to_json()))
+            (root / "training_config.json").write_text(json.dumps({"representative_dataset": "curated ESP32-S3 train split only", "manifest_sha256": "a" * 64, "window_length": 500, "threshold": .45}))
+            (root / "frozen.json").write_text(json.dumps({"model_sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "window_length": 500, "threshold": .45, "software_ready": True, "preprocess_config_hash": config.hash, "capture_profile_hash": profile.hash}))
+            with patch("srasta_csi.edge.TFLiteModel") as interpreter:
+                interpreter.return_value.window_length = 500
+                interpreter.return_value.output_detail = {"shape": np.asarray([1, 2])}
+                inference = TFLiteInference(path)
+                self.assertEqual(_load_config(path, inference, FrameValidator(profile), False), config)
+                native = FrameValidator(CaptureProfile(subcarrier_order="esp_idf_native"))
+                with self.assertRaisesRegex(ValueError, "active runtime profile"):
+                    _load_config(path, inference, native, False)
+                mapped = _load_config(path, inference, native, True)
+                self.assertEqual(mapped.capture_profile_hash, native.profile.hash)
+                self.assertEqual(mapped.motion_energy_threshold, config.motion_energy_threshold)
+                changed = PreprocessConfig(capture_profile_hash=profile.hash, motion_energy_threshold=.02)
+                (root / "preprocess_config.json").write_text(json.dumps(changed.to_json()))
+                with self.assertRaisesRegex(ValueError, "configuration hashes differ"):
+                    _load_config(path, inference, FrameValidator(profile), False)
+
+    def test_release_uses_frozen_threshold_and_rejects_artifact_tampering(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "model.tflite"
+            path.write_bytes(b"release fixture")
+            training = {"representative_dataset": "curated ESP32-S3 train split only", "manifest_sha256": "a" * 64, "window_length": 500, "threshold": 0.45}
+            (root / "training_config.json").write_text(json.dumps(training))
+            frozen = {"model_sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "window_length": 500, "threshold": 0.45, "software_ready": True}
+            (root / "frozen.json").write_text(json.dumps(frozen))
+            with patch("srasta_csi.edge.TFLiteModel") as interpreter:
+                interpreter.return_value.window_length = 500
+                interpreter.return_value.output_detail = {"shape": np.asarray([1, 2])}
+                runtime = TFLiteInference(path)
+                self.assertEqual(runtime.fall_threshold, 0.45)
+                path.write_bytes(b"modified fixture")
+                with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
+                    TFLiteInference(path)
+                path.write_bytes(b"release fixture")
+                frozen["threshold"] = 0.8
+                (root / "frozen.json").write_text(json.dumps(frozen))
+                with self.assertRaisesRegex(ValueError, "threshold/window"):
+                    TFLiteInference(path)
+
     def test_tcn_architecture_and_full_int8_parity(self):
         model = build_tcn_lite(250)
         self.assertEqual(model.input_shape, (None, 250, 52))

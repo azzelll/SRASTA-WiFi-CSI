@@ -23,6 +23,9 @@ class PreprocessConfig:
     baseline_epsilon: float = 1e-3
     motion_energy_threshold: float = 0.02
     capture_profile_hash: str = ""
+    normalized_clip: float | None = None
+    hampel_history: str = "filtered"
+    normalization_mode: str = "relative"
 
     def __post_init__(self) -> None:
         if self.target_rate_hz <= 0 or self.max_gap_s <= 0 or self.lowpass_hz <= 0:
@@ -31,13 +34,30 @@ class PreprocessConfig:
             raise ValueError("preprocessing windows and thresholds must be positive")
         if not 0 < self.baseline_alpha <= 1 or self.baseline_epsilon <= 0:
             raise ValueError("baseline parameters are invalid")
+        if self.normalized_clip is not None and (not np.isfinite(self.normalized_clip) or self.normalized_clip <= 0):
+            raise ValueError("normalized clipping bound must be finite and positive")
+        if self.hampel_history not in {"filtered", "raw"}:
+            raise ValueError("Hampel history must be filtered or raw")
+        if self.normalization_mode not in {"relative", "log_difference"}:
+            raise ValueError("normalization mode must be relative or log_difference")
 
     @property
     def hash(self) -> str:
-        return hashlib.sha256(json.dumps(asdict(self), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        return hashlib.sha256(json.dumps(self._payload(), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+    def _payload(self) -> dict[str, object]:
+        payload = asdict(self)
+        # Keep existing artifact hashes identical when the new option is off.
+        if self.normalized_clip is None:
+            payload.pop("normalized_clip")
+        if self.hampel_history == "filtered":
+            payload.pop("hampel_history")
+        if self.normalization_mode == "relative":
+            payload.pop("normalization_mode")
+        return payload
 
     def to_json(self) -> dict[str, object]:
-        return {**asdict(self), "hash": self.hash}
+        return {**self._payload(), "hash": self.hash}
 
     @classmethod
     def from_json(cls, payload: dict[str, object]) -> "PreprocessConfig":
@@ -98,7 +118,11 @@ class CausalPreprocessor:
     def _hampel(self, values: np.ndarray) -> np.ndarray:
         output = values.copy()
         for index in range(self.config.hampel_window, len(values)):
-            history = output[index - self.config.hampel_window : index]
+            # Filtered-history releases are kept reproducible. Raw past samples
+            # let a sustained motion become the baseline after a bounded window,
+            # instead of rejecting the same persistent change indefinitely.
+            source = values if self.config.hampel_history == "raw" else output
+            history = source[index - self.config.hampel_window : index]
             median = np.median(history, axis=0)
             mad = np.median(np.abs(history - median), axis=0)
             limit = self.config.hampel_sigma * 1.4826 * mad
@@ -120,12 +144,18 @@ class CausalPreprocessor:
         return output
 
     def _normalize(self, values: np.ndarray) -> np.ndarray:
+        if self.config.normalization_mode == "log_difference":
+            if np.any(values < 0):
+                raise ValueError("amplitudes cannot be negative for log normalization")
+            values = np.log1p(values)
         output = np.empty_like(values)
         baseline = values[0].copy()
         for index, value in enumerate(values):
-            output[index] = (value - baseline) / np.maximum(np.abs(baseline), self.config.baseline_epsilon)
+            output[index] = value - baseline if self.config.normalization_mode == "log_difference" else (value - baseline) / np.maximum(np.abs(baseline), self.config.baseline_epsilon)
             rate = 1.0 / (index + 1) if index < self.config.baseline_warmup_frames else self.config.baseline_alpha
             baseline = (1 - rate) * baseline + rate * value
+        if self.config.normalized_clip is not None:
+            np.clip(output, -self.config.normalized_clip, self.config.normalized_clip, out=output)
         return output
 
     @staticmethod

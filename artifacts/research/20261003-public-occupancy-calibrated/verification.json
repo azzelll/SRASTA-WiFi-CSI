@@ -1,0 +1,220 @@
+{
+  "subject_overlap": [],
+  "all_selected_source_train": true,
+  "candidate_metrics_checked": 12,
+  "model_roundtrip_checks": [
+    {
+      "task": "breathing",
+      "checked": 12,
+      "examples": [
+        {
+          "recording_id": "Human_U23_E09_empty_LOS_FanOff_EchoDot_2gen_medium_112_35010",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_LOS_FanOff_EchoDot_3gen_medium_240_89001",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_NLOS_FanOff_EchoPlus_easy_240_303017",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_NLOS_FanOn_GoogleNestHub_hard_240_280001",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_LOS_FanOff_EchoDot_3gen_medium_240_183009",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_NLOS_FanOff_EchoPlus_easy_240_291005",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_LOS_FanOff_EchoDot_2gen_easy_112_78024",
+          "source_label": "sleep",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_NLOS_FanOff_EchoPlus_easy_240_264001",
+          "source_label": "sleep",
+          "prediction": "sleep"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_LOS_FanOff_EchoDot_3gen_easy_240_186020",
+          "source_label": "sleep",
+          "prediction": "sleep"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_NLOS_FanOn_GoogleNestHub_hard_240_381026",
+          "source_label": "sleep",
+          "prediction": "sleep"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_NLOS_FanOff_EchoPlus_easy_240_369006",
+          "source_label": "sleep",
+          "prediction": "sleep"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_NLOS_FanOn_EchoPlus_easy_240_286022",
+          "source_label": "sleep",
+          "prediction": "sleep"
+        }
+      ]
+    },
+    {
+      "task": "presence",
+      "checked": 18,
+      "examples": [
+        {
+          "recording_id": "Human_U23_E09_empty_LOS_FanOff_EchoDot_2gen_medium_112_35010",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_LOS_FanOff_EchoDot_3gen_medium_240_89001",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_NLOS_FanOff_EchoPlus_easy_240_303017",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_NLOS_FanOn_GoogleNestHub_hard_240_280001",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_LOS_FanOff_EchoDot_3gen_medium_240_183009",
+          "source_label": "empty",
+          "prediction": "present"
+        },
+        {
+          "recording_id": "Human_U23_E09_empty_NLOS_FanOff_EchoPlus_easy_240_291005",
+          "source_label": "empty",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_LOS_FanOff_EchoDot_2gen_easy_112_78024",
+          "source_label": "sleep",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_NLOS_FanOff_EchoPlus_easy_240_264001",
+          "source_label": "sleep",
+          "prediction": "present"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_LOS_FanOff_EchoDot_3gen_easy_240_186020",
+          "source_label": "sleep",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_NLOS_FanOn_GoogleNestHub_hard_240_381026",
+          "source_label": "sleep",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_NLOS_FanOff_EchoPlus_easy_240_369006",
+          "source_label": "sleep",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U23_E09_sleep_NLOS_FanOn_EchoPlus_easy_240_286022",
+          "source_label": "sleep",
+          "prediction": "empty"
+        },
+        {
+          "recording_id": "Human_U05_jumping_E04_AppleHomePod_56_6002",
+          "source_label": "jumping",
+          "prediction": "present"
+        },
+        {
+          "recording_id": "Human_U05_wavinghand_E04_WyzePlug_56_260023",
+          "source_label": "wavinghand",
+          "prediction": "present"
+        },
+        {
+          "recording_id": "Human_U05_wavinghand_E04_WyzePlug_56_260027",
+          "source_label": "wavinghand",
+          "prediction": "present"
+        },
+        {
+          "recording_id": "Human_U05_wavinghand_E04_WyzePlug_56_260025",
+          "source_label": "wavinghand",
+          "prediction": "present"
+        },
+        {
+          "recording_id": "Human_U05_running_E04_Googlenest_56_145017",
+          "source_label": "running",
+          "prediction": "present"
+        },
+        {
+          "recording_id": "Human_U05_running_E04_Googlenest_56_145013",
+          "source_label": "running",
+          "prediction": "present"
+        }
+      ]
+    }
+  ],
+  "post_hoc_validation": true,
+  "local_deployment_ready": false,
+  "fall_v8_sha256": "ac8ca20e9bd0c70a006b9fc7c410c44e6e887e8ffd1174692be3ac3277436e66",
+  "cli_checks": [
+    {
+      "task": "breathing",
+      "label": "empty",
+      "positive_probability": 0.24908268583268584,
+      "source": "public_recording",
+      "research_only": true,
+      "ESP32_validated": false,
+      "layout": "flat_time_major_ablation",
+      "threshold": 0.31886075444163686,
+      "normal_class_available": false,
+      "recording_id": "Human_U23_E09_empty_LOS_FanOff_EchoDot_2gen_medium_112_35010",
+      "source_label": "empty"
+    },
+    {
+      "task": "breathing",
+      "label": "empty",
+      "positive_probability": 0.2773456080956081,
+      "source": "public_recording",
+      "research_only": true,
+      "ESP32_validated": false,
+      "layout": "flat_time_major_ablation",
+      "threshold": 0.31886075444163686,
+      "normal_class_available": false,
+      "recording_id": "Human_U23_E09_sleep_LOS_FanOff_EchoDot_2gen_easy_112_78024",
+      "source_label": "sleep"
+    },
+    {
+      "task": "presence",
+      "label": "present",
+      "positive_probability": 0.9973333333333333,
+      "source": "public_recording",
+      "research_only": true,
+      "ESP32_validated": false,
+      "layout": "declared_axes",
+      "threshold": 0.9661123582300053,
+      "normal_class_available": false,
+      "recording_id": "Human_U05_jumping_E04_AppleHomePod_56_6002",
+      "source_label": "jumping"
+    }
+  ],
+  "source_index_hashes_unchanged": true,
+  "backend_tests": {
+    "count": 93,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  }
+}

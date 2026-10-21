@@ -58,16 +58,21 @@ def export_full_int8(model, representative_windows: np.ndarray, output: str | Pa
     return target
 
 
+def interpreter_class():
+    try:
+        from tflite_runtime.interpreter import Interpreter
+    except ImportError:
+        try:
+            from ai_edge_litert.interpreter import Interpreter
+        except ImportError:
+            import tensorflow as tf
+            Interpreter = tf.lite.Interpreter
+    return Interpreter
+
+
 class TFLiteModel:
     def __init__(self, path: str | Path):
-        try:
-            from tflite_runtime.interpreter import Interpreter
-        except ImportError:
-            try:
-                from ai_edge_litert.interpreter import Interpreter
-            except ImportError:
-                import tensorflow as tf
-                Interpreter = tf.lite.Interpreter
+        Interpreter = interpreter_class()
 
         self.interpreter = Interpreter(model_path=str(path))
         self.interpreter.allocate_tensors()

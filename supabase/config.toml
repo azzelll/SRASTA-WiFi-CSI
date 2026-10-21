@@ -1,0 +1,11 @@
+project_id = "srasta-caregiver"
+
+[auth]
+site_url = "https://srasta-caregiver.vercel.app"
+additional_redirect_urls = ["https://srasta-caregiver.vercel.app"]
+# Caregivers are provisioned by the owner and assigned to a device.
+enable_signup = false
+
+[functions.edge-sync]
+# Device endpoint uses its own per-device credential. No public database grants.
+verify_jwt = false

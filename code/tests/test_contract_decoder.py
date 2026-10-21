@@ -5,8 +5,8 @@ import unittest
 
 import numpy as np
 
-from srasta_csi.contract import FrameValidationError, FrameValidator
-from srasta_csi.decoder import FEATURE_COUNT, decode_iq_to_amplitude
+from srasta_csi.contract import CaptureProfile, FrameValidationError, FrameValidator
+from srasta_csi.decoder import FEATURE_COUNT, USABLE_SUBCARRIER_INDICES, decode_iq_to_amplitude
 
 
 def payload(sequence: int = 1, timestamp: int = 10) -> dict[str, object]:
@@ -17,6 +17,30 @@ def payload(sequence: int = 1, timestamp: int = 10) -> dict[str, object]:
 
 
 class ContractDecoderTests(unittest.TestCase):
+    def test_native_frequency_order_matches_centered_training_carriers(self):
+        canonical = np.zeros(64, dtype=np.int8)
+        canonical[USABLE_SUBCARRIER_INDICES] = np.arange(1, 53)
+        native = np.fft.ifftshift(canonical)
+        iq = np.stack([np.zeros(64, dtype=np.int8), native], axis=1).reshape(128)
+        decoded = decode_iq_to_amplitude(iq, subcarrier_order="esp_idf_native")
+        np.testing.assert_array_equal(decoded, np.arange(1, 53))
+        self.assertEqual(np.count_nonzero(decoded), 52)
+        invalid = decode_iq_to_amplitude(iq, first_word_invalid=True, subcarrier_order="esp_idf_native")
+        expected = np.arange(1, 53, dtype=np.float32)
+        expected[26] = 0  # native position 1 is canonical position 33, carrier +1
+        np.testing.assert_array_equal(invalid, expected)
+
+    def test_subcarrier_order_is_explicit_and_part_of_capture_hash(self):
+        legacy = CaptureProfile()
+        self.assertEqual(legacy.hash, "21a883834095a89024ad75c9ac2494640fd574aa748d456a30baf4477f4a360e")
+        native = CaptureProfile(subcarrier_order="esp_idf_native")
+        self.assertNotEqual(native.hash, legacy.hash)
+        self.assertEqual(native.to_json()["subcarrier_order"], "esp_idf_native")
+        with self.assertRaises(ValueError):
+            decode_iq_to_amplitude(payload()["iq_bytes"], subcarrier_order="guess")
+        with self.assertRaises(ValueError):
+            CaptureProfile(subcarrier_order="guess")
+
     def test_iq_order_fixed_mask_and_invalid_first_word(self):
         values = decode_iq_to_amplitude(payload()["iq_bytes"])
         self.assertEqual(values.shape, (FEATURE_COUNT,))

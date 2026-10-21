@@ -1,5 +1,12 @@
 # SRASTA implementation guide for Claude Code
 
+## Handoff checkpoint, 21 October 2026
+
+Read `HANDOFF.md` and `docs/CAPTURE_QUICKSTART.md` after this file and
+`AI_CONTEXT.md`. They record current implementation/deployment boundaries and
+the selected, explicitly authorised model snapshots. Historical hardware and
+initial model descriptions below are not current live-status assertions.
+
 ## Read first
 
 Read the Google Docs proposal completely before making any product, feature,
@@ -23,8 +30,9 @@ fall-detection path is one implementation workstream:
 
 `ESP32-S3 CSI receiver -> USB serial -> Raspberry Pi -> preprocessing -> edge model -> dashboard / Blynk`
 
-The hardware is not connected yet. Implement parsers, tests, replay mode,
-training, and backend so the system can run as soon as ESP32 frames arrive.
+Hardware has previously run on Pi; current power, port mapping and connectivity
+must be checked before live operations. Implement and verify replay/software
+independently when hardware is unavailable.
 
 It is not a ceiling on the product scope. Do not remove, postpone, or label as
 out of scope any proposal-defined capability, including activity-abnormality,

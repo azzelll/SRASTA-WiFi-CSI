@@ -1,7 +1,9 @@
-# Handoff SRASTA — 21 Oktober 2026
+# Handoff SRASTA — diperbarui 22 Oktober 2026
 
 Dokumen masuk untuk anggota tim dan AI penerus. Ini snapshot software dan
 bukti yang tersedia, bukan pernyataan seluruh produk sudah tervalidasi.
+Pembaruan Pi terbaru: [operasi Pi](docs/PI_OPERATIONS.md) dan
+[bukti 22 Oktober](docs/evidence/20261022-pi-deployment.md). Branch tetap sama.
 
 ## 1. Ambil versi yang benar
 
@@ -33,7 +35,7 @@ bisa diakses, catat kendala akses; jangan mengarang isinya atau memangkas fitur.
 | Presence | Kandidat model publik dan trainer presence lokal tersedia | Kandidat publik belum valid untuk stream 52 kanal RX; belum ada model presence lokal accepted |
 | Breathing condition | Kandidat riset `empty/sleep/normal` dan `empty/sleep` | `normal` tiga kelas masih proxy HAR; tidur alami vs terjaga lokal belum dilatih/divalidasi |
 | Motion/inactivity | Energi gerak + timer state tersedia | Kalibrasi lokal dan evaluasi anotasi; bukan classifier medis tervalidasi |
-| Kamera | Event-only MoveNet, burst tiga frame, minimal dua sepakat; COCO17 terukur | Paket burst terbaru belum dipasang/diuji pada Pi; akurasi posture belum diukur |
+| Kamera | Burst/skeleton dipasang di Pi 22 Oktober; uji sensor asli tiga frame dan pose 17 titik lolos | Postur uji masih uncertain; akurasi posture dan trigger CSI asli belum diukur |
 | Caregiver | React/TypeScript UI sesuai arah Figma, event history, skeleton, ACK/bantuan, offline/stale state | Penerimaan caregiver nyata, push HP dan jalur kamera Pi terbaru → cloud → HP |
 | Cloud/Blynk | Adapter, SQL/RLS, edge-sync, idempotensi/command receipt dan tes tersedia | Kredensial harus diberikan privat; software test bukan bukti semua pengiriman nyata berhasil |
 | Recorder | Satu CLI: kosong → normal → diam; simpan raw + anotasi + prediksi + QA | Belum ada CLI terpandu tidur alami, jatuh, atau sesi ADL panjang dengan anotasi lengkap |
@@ -67,16 +69,18 @@ Lihat [laporan model](docs/evidence/20261019-offline-model-development.md),
 [metrics fall](artifacts/releases/20261001-tcn-v8-motion-calibrated/selected/metrics.json)
 dan [protokol occupancy](artifacts/research/20261019-occupancy-calibrated/protocol.json).
 
-### Perangkat dan deployment terakhir, bukan status live hari ini
+### Perangkat dan deployment, diperiksa 22 Oktober 2026
 
 - Pi 4B 4 GB, OS 64 bit, kamera OV5647; kipas dua kabel pernah dikonfirmasi
   berputar oleh pemilik. Tidak ada sensor RPM yang bisa membuktikan putarannya.
-- Pi terakhir dikenal sebagai `srasta@srasta-edge.local`; IP `192.168.1.15`
-  adalah historis. Periksa `hostname -I` pada Pi; jangan menganggap IP tetap.
-- Release Pi terakhir yang tercatat terpasang:
-  `/home/srasta/srasta-edge/releases/20261009-demo-v8-camera-r1`.
-  Paket burst r2 tanggal 19 Oktober baru lolos software acceptance di Mac,
-  **belum terbukti terpasang di Pi**.
+- SSH `srasta@srasta-edge.local` berhasil. Alamat DHCP berubah mengikuti
+  jaringan; periksa `hostname -I` pada Pi jika mDNS tidak tersedia.
+- Release aktif: `/home/srasta/srasta-edge/releases/20261022-demo-v8-camera-burst-r3`.
+  ARM64 acceptance, sensor kamera, restart service, Blynk dan cloud worker
+  berhasil diperiksa. Backup unit/DB tersedia; lihat panduan operasi Pi.
+- TX/RX **tidak terpasang** pada checkpoint ini sesuai keterangan pemilik.
+  Status live `unavailable`, monitoring offline, zero frames, bukan simulasi.
+  Trigger CSI → kamera → skeleton caregiver dan reboot fisik masih perlu diuji.
 - Web terakhir tercatat di <https://srasta-caregiver.vercel.app>, Vercel scope
   `azzellls-projects`, project `srasta-caregiver`. Supabase/edge-sync pernah
   dideploy. Push GitHub ini tidak otomatis memasang Pi atau membuktikan deployment
@@ -173,10 +177,12 @@ push HP atau mutu CSI hari ini. Jangan mengirim event palsu ke production.
    threshold/preprocessing sebelum test baru. Laporkan confusion matrix,
    interval ketidakpastian, event recall dan FAR dari exposure direview;
    jangan mengganti label atau split setelah melihat prediksi.
-6. **Pasang release Pi baru** ke folder baru, simpan rollback dan config privat,
-   jalankan acceptance ARM, lalu uji CSI nyata + kamera event-only + skeleton
-   event UID yang sama pada caregiver. Uji reboot/offline/reconnect/ACK/push
-   pada HP. Periksa alarm fisik terpisah. Jangan menimpa service secara buta.
+6. **Lanjutkan acceptance Pi yang sudah diperbarui**: sambungkan RX UART/COM
+   dan daya TX, uji CSI nyata + kamera event-only + skeleton event UID yang
+   sama pada caregiver. Uji reboot/offline/reconnect/ACK/push pada HP.
+   Acceptance ARM dan satu burst kamera terisolasi sudah lolos pada 22 Oktober;
+   ini belum membuktikan seluruh jalur kejadian. Periksa alarm fisik terpisah.
+   Jangan menimpa service secara buta; backup/rollback ada di panduan operasi.
 
 Pembuatan paket baru setelah build web (nama output harus baru):
 

@@ -1,5 +1,25 @@
 # SRASTA AI and Edge Backend Context
 
+## Pi deployment, 22 October 2026
+
+The three-frame camera/skeleton runtime is now installed at
+`/home/srasta/srasta-edge/releases/20261022-demo-v8-camera-burst-r3`.
+ARM64 acceptance passed (135 file hashes, three synthetic Mac/Pi windows
+identical, 200 fall inferences: median 2.98 ms / p95 3.05 ms). Real OV5647
+capture with an isolated synthetic event produced three frames and a bounded
+COCO17 pose, but posture remained uncertain because body keypoints were weak.
+No images or diagnostic events were sent to production.
+
+Service restart, enabled/linger configuration, persistent SQLite pose migration,
+local HTML/assets, Blynk connection and cloud-sync worker success were checked.
+TX/RX could not be connected by the owner: zero CSI frames, source unavailable,
+unverified state and monitoring offline are the expected current outputs.
+Real CSI → event → camera → cloud skeleton/HP, physical reboot, long recovery
+and physical alarm acceptance remain open. Model accuracy is unchanged.
+See `docs/PI_OPERATIONS.md` for commands/rollback and
+`docs/evidence/20261022-pi-deployment.md` for measured results and boundaries.
+The October 21/19 sections below describe their historical checkpoints.
+
 ## Team handoff, 21 October 2026
 
 Start with `HANDOFF.md` for current state, selected artifacts and priorities;
@@ -9,7 +29,8 @@ publishing selected model snapshots for team continuity. Raw CSI, private
 configuration, databases, source data and other experiments remain local.
 Software verification at this checkpoint is recorded separately in
 `docs/evidence/20261021-github-handoff.md`; no fresh Pi/cloud/camera acceptance
-is implied. Latest Pi burst software still needs installation and physical QA.
+is implied by that older checkpoint. See October 22 above for the later Pi
+installation and the physical tests that remain open.
 
 ## Product context
 

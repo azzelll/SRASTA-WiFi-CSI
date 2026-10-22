@@ -1,6 +1,6 @@
 # SRASTA — CSI, edge AI, dan app caregiver
 
-## Handoff tim — 21 Oktober 2026
+## Handoff tim — diperbarui 22 Oktober 2026
 
 **Mulai dari [HANDOFF.md](HANDOFF.md)** untuk state, model terpilih, setup clone,
 dan urutan pekerjaan. [Panduan pengambilan data](docs/CAPTURE_QUICKSTART.md)
@@ -10,14 +10,23 @@ Snapshot terbaru ada di branch **`handoff/2026-10-21`**; branch September dan
 `main` adalah checkpoint lama. Model demo terpilih dan indeks split ikut Git;
 rekaman CSI mentah dan kredensial tetap lokal.
 
+**Pi sudah diperbarui** ke `20261022-demo-v8-camera-burst-r3`. Acceptance ARM,
+burst sensor kamera tiga frame dan restart layanan lolos; Blynk/cloud worker
+tersambung. Postur kamera masih uncertain. TX/RX tidak dapat dipasang saat
+checkpoint, jadi CSI langsung dan trigger kamera dari CSI belum diuji ulang.
+[Bukti deployment](docs/evidence/20261022-pi-deployment.md) dan
+[perintah start/stop/status/kamera/rollback](docs/PI_OPERATIONS.md).
+
 Pembaruan software 19 Oktober: konsistensi tiga frame kamera, detail kejadian
 dan status respons caregiver, serta pengujian pemulihan serial/cloud/kamera.
-Web sudah terdeploy; paket Pi terbaru masih perlu dipasang dan diuji fisik:
+Web sudah terdeploy; pada checkpoint 19 Oktober paket Pi belum dipasang
+(instalasi selanjutnya tercatat pada 22 Oktober di atas):
 [hasil dan batas bukti](docs/evidence/20261019-caregiver-hardening.md).
 
 Panel kamera sekarang menggambar skeleton dari 17 titik MoveNet saat kejadian,
 dengan label berbaring/tegak/belum jelas. UI dan kontrak cloud sudah terdeploy;
-runtime Pi baru masih perlu dipasang dan diuji dengan kamera asli:
+runtime Pi kemudian dipasang pada 22 Oktober; validasi seluruh jalur CSI
+ke caregiver tetap belum selesai:
 [perubahan dan batas bukti](docs/evidence/20261019-camera-skeleton.md).
 
 Pengembangan offline 19 Oktober: audit label normal, 36 kandidat occupancy,

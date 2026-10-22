@@ -1,11 +1,15 @@
 # SRASTA implementation guide for Claude Code
 
-## Handoff checkpoint, 21 October 2026
+## Handoff checkpoint, 22 October 2026
 
 Read `HANDOFF.md` and `docs/CAPTURE_QUICKSTART.md` after this file and
 `AI_CONTEXT.md`. They record current implementation/deployment boundaries and
 the selected, explicitly authorised model snapshots. Historical hardware and
 initial model descriptions below are not current live-status assertions.
+Pi burst/skeleton release was installed on 22 October; read
+`docs/PI_OPERATIONS.md` and `docs/evidence/20261022-pi-deployment.md` before
+hardware operations. TX/RX were unavailable for that checkpoint, so it does
+not establish fresh live CSI or a real CSI-triggered camera event.
 
 ## Read first
 

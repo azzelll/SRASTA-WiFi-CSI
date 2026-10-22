@@ -9,11 +9,18 @@ memisahkan hasil software, aliran hardware, dan batas validasi model.
 
 ## Instalasi yang sedang berjalan
 
-- Pi memakai Wi-Fi rumah; alamat terakhir `192.168.1.15` dapat berubah
-  mengikuti DHCP.
-- Rilis terpasang: `/home/srasta/srasta-edge/releases/20261009-demo-v8-camera-r1`.
-  Pada 9 Oktober layanan dihentikan sementara sesuai permintaan user;
-  autostart tetap aktif. [Bukti kamera](docs/evidence/20261009-camera-validation.md).
+Checkpoint **22 Oktober 2026**: [operasi/rollback](docs/PI_OPERATIONS.md) dan
+[bukti terukur](docs/evidence/20261022-pi-deployment.md). Pemeriksaan lama di
+bawah tetap diberi tanggal agar tidak dianggap bukti baru.
+
+- Pi memakai Wi-Fi/hotspot pemilik, terjangkau lewat `srasta-edge.local`.
+  IP numerik berubah mengikuti DHCP; `192.168.1.15` hanya alamat historis.
+- Rilis aktif: `/home/srasta/srasta-edge/releases/20261022-demo-v8-camera-burst-r3`.
+  Acceptance ARM64, sensor kamera tiga frame, restart layanan dan koneksi
+  Blynk/cloud worker telah diperiksa. Postur uji kamera masih uncertain.
+- TX/RX tidak dapat dipasang pada checkpoint 22 Oktober. Sumber unavailable,
+  health tidak siap dan zero frames diharapkan; bukan simulasi. CSI → kamera
+  → skeleton caregiver serta reboot fisik release ini belum dibuktikan.
 - RX memakai konektor **UART/COM**, dengan port
   `/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0`. Konektor USB native/JTAG
   yang ditemukan sebelumnya tidak mengeluarkan JSONL CSI firmware ini.
@@ -35,7 +42,7 @@ penggantinya dipasang dan diperiksa.
 Untuk masuk lagi ke terminal Pi setelah reboot, jalankan di Mac:
 
 ```bash
-ssh srasta@192.168.1.15
+ssh -o ServerAliveInterval=30 srasta@srasta-edge.local
 ```
 
 `sudo reboot` memulai ulang Pi secara otomatis selama daya tersambung.
@@ -201,33 +208,21 @@ Tubuh terpotong/tertutup atau postur berubah tetap belum jelas. Detail kejadian
 di app menyimpan konteks historis; tombol caregiver membedakan menunggu dan
 diterima perangkat. [Bukti software](docs/evidence/20261019-caregiver-hardening.md).
 
-Paket baru belum dipasang pada Pi. Rilis 9 Oktober yang terakhir dipasang
-hanya mengirim ringkasan postur, tanpa koordinat. Ikuti
-[panduan paket baru](docs/pi-offline-package.md) untuk pembaruan, kemudian
-uji kamera dan jalur CSI asli lagi. Berbaring tidak memastikan tidur atau
-jatuh; postur tegak masih dapat berarti berdiri atau duduk.
+Paket burst/skeleton sudah dipasang pada Pi pada 22 Oktober. Tangkapan
+terisolasi menghasilkan pose 17×3, tetapi keypoint tubuh masih kurang andal.
+Trigger CSI asli dan tampilan event yang sama pada caregiver belum diuji.
+Ikuti [panduan operasi](docs/PI_OPERATIONS.md) untuk pemeriksaan/rollback.
+Berbaring tidak memastikan tidur atau jatuh; postur tegak dapat berarti duduk.
 
 Uji kamera fisik terakhir menghasilkan “Keypoint tubuh kurang andal”; arahkan
 kamera agar tubuh utuh terlihat dengan pencahayaan cukup. Hentikan preview
 sebelum layanan memakai kamera yang sama.
 
-Uji diagnostik terisolasi berikut dijalankan di **Pi** saat layanan berhenti.
-Ini memakai kamera asli dengan pemicu sintetis, tanpa peringatan live/cloud:
-
-```bash
-systemctl --user stop srasta-edge.service
-cd ~/srasta-edge/releases/20261009-demo-v8-camera-r1
-.venv/bin/python code/camera_acceptance.py \
-  --model artifacts/models/movenet-lightning/model.tflite \
-  --camera-python /usr/bin/python3
-systemctl --user start srasta-edge.service
-```
-
-Perintah di atas menunjuk release fisik terakhir. Setelah memasang paket
-`20261019-demo-camera-burst-r2.tar.gz` ke folder release baru, jalankan
-`camera_acceptance.py` dari folder baru itu untuk memeriksa burst tiga frame.
-Jangan menimpa folder release lama atau menganggap web yang sudah terdeploy
-berarti runtime Pi sudah diperbarui.
+Uji diagnostik memakai kamera asli dengan pemicu sintetis, tanpa peringatan
+live/cloud. Blok perintah lengkap di
+[Kamera diagnostik](docs/PI_OPERATIONS.md#kamera-diagnostik-tanpa-alert-production)
+memulihkan service lewat `trap` jika tes gagal. Jalankan dari release baru dan
+jangan menjalankan preview lain bersamaan. Jangan menimpa folder release lama.
 
 Jangan melakukan jatuh untuk menguji pemasangan. Uji akurasi kamera dan
 fall CSI tetap memerlukan protokol serta data beranotasi tersendiri.
@@ -238,7 +233,7 @@ Installer user service memeriksa manifest dan port RX sebelum memasang unit.
 Jalankan di Pi setelah software dan aliran RX terbukti:
 
 ```bash
-cd ~/srasta-edge/releases/20261009-demo-v8-camera-r1
+cd ~/srasta-edge/releases/20261022-demo-v8-camera-burst-r3
 .venv/bin/python scripts/install_pi_user_service.py \
   --rx-port /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0 \
   --subcarrier-order esp_idf_native \
@@ -264,7 +259,7 @@ service Mac dengan device cloud yang sama secara bersamaan.
 Untuk memeriksa app Pi dari Mac:
 
 ```bash
-ssh -N -L 8015:127.0.0.1:8000 srasta@192.168.1.15
+ssh -N -L 8015:127.0.0.1:8000 srasta@srasta-edge.local
 ```
 
 Buka <http://127.0.0.1:8015>. Tunnel hanya untuk pemeriksaan lokal; app remote
@@ -276,7 +271,8 @@ tetap menerima data lewat Supabase.
   specificity 64,9%; belum memenuhi target akurasi 80%/80%.
 - Model publik sleep/empty dan presence dapat dimuat untuk eksperimen,
   tetapi tidak kompatibel sebagai model presence lokal terverifikasi.
-  Tidak dipasang ke jalur live. Kelas awake/normal pada breathing belum ada.
+  Tidak dipasang ke jalur live. Kandidat riset tiga kelas memiliki normal
+  proxy HAR; belum ada classifier awake/normal lokal yang tervalidasi.
 - Probe sintetis membuktikan checksum, loading, dan eksekusi lintas runtime.
   Ia tidak mengukur akurasi, false alert, atau estimasi napas manusia.
 - Data publik mentah tetap pada Mac; CLI inferensi rekaman publik membutuhkan

@@ -1,0 +1,62 @@
+{
+  "checked_at": "2026-10-22T03:53:33.044933+00:00",
+  "service": {
+    "NRestarts": "0",
+    "ExecMainPID": "2200",
+    "WorkingDirectory": "/home/srasta/srasta-edge/releases/20261022-demo-v8-camera-burst-r3",
+    "ActiveState": "active",
+    "SubState": "running",
+    "UnitFileState": "enabled"
+  },
+  "service_restart_passed": true,
+  "linger": "Linger=yes",
+  "health": {
+    "ok": false,
+    "service": "srasta-edge",
+    "serial_connected": false,
+    "stream_recent": false,
+    "stream_age_s": null,
+    "accepted_frames": 0,
+    "quarantine_count": 0
+  },
+  "snapshot": {
+    "source": "unavailable",
+    "simulation": false,
+    "monitoring_online": false,
+    "state_verified": false,
+    "serial_connected": false,
+    "accepted_frames": 0,
+    "quarantined_frames": 0,
+    "capture_rate_hz": 0.0,
+    "blynk_connected": true
+  },
+  "camera": {
+    "available": true,
+    "active": false,
+    "result": "Siap; kamera hanya aktif saat anomali"
+  },
+  "remote": {
+    "enabled": true,
+    "connected": true,
+    "worker_running": true,
+    "last_error": null
+  },
+  "transport": {
+    "connected": false,
+    "running": true,
+    "port": "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0",
+    "reconnects": 80
+  },
+  "camera_pose_schema_present": true,
+  "persistent_row_counts": {
+    "events": 0,
+    "camera_validations": 0
+  },
+  "local_dashboard_html_matches_package": true,
+  "served_asset_sha256": {
+    "/assets/index-jGrE46tZ.js": "b43b7860a637f0bd5a20b189a918695fdebbb66c7ba57fbd9e4e6966b4afa98c",
+    "/assets/index-DC7uuqqH.css": "bededf275ec1bc1b7069542456d975b881dc3acc2857a5b8a52ce57fd0f1b245"
+  },
+  "live_CSI_test": false,
+  "reboot_test": false
+}

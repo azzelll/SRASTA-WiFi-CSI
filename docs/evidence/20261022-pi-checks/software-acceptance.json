@@ -1,0 +1,94 @@
+{
+  "software_check": "passed",
+  "accuracy_test": false,
+  "live_CSI_test": false,
+  "app_startup": "passed",
+  "required_routes": [
+    "/",
+    "/api/caregiver",
+    "/assets",
+    "/health"
+  ],
+  "platform": "Linux-6.18.50+rpt-rpi-v8-aarch64-with-glibc2.41",
+  "machine": "aarch64",
+  "python": "3.13.5",
+  "checked_files": 135,
+  "versions": {
+    "numpy": "2.5.1",
+    "h5py": "3.14.0",
+    "scikit-learn": "1.9.0",
+    "joblib": "1.5.3",
+    "ai-edge-litert": "2.2.0",
+    "tflite-runtime": null,
+    "tensorflow": null
+  },
+  "interpreter": "ai_edge_litert.interpreter",
+  "input_shape": [
+    1,
+    500,
+    52
+  ],
+  "input_dtype": "<class 'numpy.int8'>",
+  "output_dtype": "<class 'numpy.int8'>",
+  "reference_windows": 3,
+  "max_probability_difference": 0.0,
+  "synthetic_inference_ms": {
+    "runs": 200,
+    "median": 2.9814409999744385,
+    "p95": 3.047551800000292,
+    "max": 3.136857000299642
+  },
+  "public_models": {
+    "breathing": {
+      "loaded": true,
+      "synthetic_execution": true,
+      "research_only": true,
+      "ESP32_validated": false
+    },
+    "presence": {
+      "loaded": true,
+      "synthetic_execution": true,
+      "research_only": true,
+      "ESP32_validated": false
+    }
+  },
+  "offline_research_models": {
+    "artifacts/research/20261019-occupancy-calibrated/breathing/model.joblib": {
+      "loaded": true,
+      "synthetic_execution": true,
+      "research_only": true,
+      "local_deployment_ready": false,
+      "normal_proxy_only": false,
+      "accuracy_test": false
+    },
+    "artifacts/research/20261019-occupancy-calibrated/breathing_three/model.joblib": {
+      "loaded": true,
+      "synthetic_execution": true,
+      "research_only": true,
+      "local_deployment_ready": false,
+      "normal_proxy_only": true,
+      "accuracy_test": false
+    },
+    "artifacts/research/20261019-occupancy-calibrated/presence/model.joblib": {
+      "loaded": true,
+      "synthetic_execution": true,
+      "research_only": true,
+      "local_deployment_ready": false,
+      "normal_proxy_only": false,
+      "accuracy_test": false
+    }
+  },
+  "camera_model": {
+    "loaded": true,
+    "synthetic_execution": true,
+    "frames_in_consistency_check": 3,
+    "pose_shape": [
+      17,
+      3
+    ],
+    "camera_sensor_opened": false,
+    "accuracy_test": false
+  },
+  "fall_threshold": 0.4500000000000001,
+  "motion_threshold": 0.0003443831083131954
+}

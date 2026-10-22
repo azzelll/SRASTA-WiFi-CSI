@@ -3,6 +3,9 @@
 Panduan ini sesuai CLI yang ada pada handoff **21 Oktober 2026**. Mulai dengan
 setup Python dan hash model di [`HANDOFF.md`](../HANDOFF.md). Recorder saat ini
 mengambil **tiga kondisi nonfall**, bukan otomatis seluruh dataset lima fitur.
+Runtime Pi sudah diperbarui 22 Oktober; perintah service dan cara memeriksa
+RX ada di [PI_OPERATIONS.md](PI_OPERATIONS.md). Pembaruan runtime tidak
+mengubah prosedur atau status acceptance data lokal di panduan ini.
 
 ## 1. Hubungkan perangkat dan cek sumber
 

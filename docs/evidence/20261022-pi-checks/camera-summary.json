@@ -1,0 +1,21 @@
+{
+  "purpose": "manual real-camera check with isolated synthetic trigger, not a detected fall",
+  "software_passed": true,
+  "camera_model": "MoveNet Lightning INT8 v4",
+  "normal_state_no_capture": true,
+  "one_burst_per_event": true,
+  "frames_per_burst": 3,
+  "camera_inactive_after_capture": true,
+  "images_saved": false,
+  "cloud_events_sent": false,
+  "validation_summary": {
+    "outcome": "uncertain",
+    "result": "Keypoint tubuh kurang andal",
+    "latency_ms": 3384.6254529998987,
+    "pose_format": "movenet-coco17",
+    "pose_shape": [
+      17,
+      3
+    ]
+  }
+}

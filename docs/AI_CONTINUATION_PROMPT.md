@@ -14,7 +14,8 @@ Jika belum tersedia, clone --branch handoff/2026-10-21, lalu bekerja dari root.
 Periksa git status, branch dan commit dahulu; pertahankan perubahan pengguna.
 
 Baca berurutan: AGENTS.md, AGENT.md, AI_CONTEXT.md, HANDOFF.md,
-docs/CAPTURE_QUICKSTART.md, docs/DATA_SOURCES.md, lalu evidence 19 dan 21 Oktober.
+docs/CAPTURE_QUICKSTART.md, docs/PI_OPERATIONS.md, docs/DATA_SOURCES.md,
+lalu docs/evidence/20261022-pi-deployment.md dan evidence 19/21 Oktober.
 Baca proposal Google Docs yang ditautkan AGENTS.md jika bisa diakses; jika
 tidak, nyatakan kendala tanpa mengarang requirement. Schema dan tes checked-in
 menentukan kebenaran implementasi. Laporkan kode aktual vs klaim dokumentasi.
@@ -35,9 +36,12 @@ State penting:
 - QA sesi yang ada terakhir 2 rejected, 2 pending, 0 accepted. Jangan langsung
   training dari sesi pending. Minta transfer arsip privat lengkap + subjects.jsonl
   bila perlu; jangan mengupload raw ke layanan AI/Git atau mengarang reviewer.
-- Pi terakhir tercatat memakai release 9 Oktober; paket burst 19 Oktober baru
-  diuji software di Mac. Cek versi Pi, port RX, kamera dan service aktual sebelum
-  menyatakan sudah terpasang. Jangan flash tanpa mapping TX/RX yang jelas.
+- Pi memakai release 20261022-demo-v8-camera-burst-r3 pada checkpoint 22 Oktober.
+  Acceptance ARM, tiga frame kamera asli, pose 17 titik, restart service dan
+  cloud/Blynk tersambung sudah diperiksa. Postur kamera masih uncertain.
+  TX/RX tidak dapat dipasang saat itu: belum ada uji CSI asli/trigger kejadian
+  atau reboot fisik release baru. Cek ulang status sekarang; jangan flash tanpa
+  mapping TX/RX yang jelas. Backup/rollback dan perintah ada PI_OPERATIONS.md.
 
 Kontrak CSI: LLTF/HT20, 128 signed bytes [imaginary,real] -> 64 amplitudo ->
 fixed mask centered 6..31 dan 33..58 -> 52 fitur. Live firmware channel 6,
@@ -61,8 +65,9 @@ Jangan meminta orang jatuh tanpa prosedur terlatih dan aman yang disetujui.
 Prioritas selanjutnya: (1) reproduksi clone dan state, (2) pilot CSI aktual,
 (3) data nonfall accepted dari subjek terpisah, (4) recorder sleep/transisi/ADL
 dan protokol fall, (5) training/kalibrasi train-validation dengan domain benar,
-(6) frozen independent evaluation dan FAR/exposure, (7) release Pi baru dengan
-rollback lalu buktikan CSI -> event -> kamera -> skeleton caregiver dan push HP.
+(6) frozen independent evaluation dan FAR/exposure, (7) lanjutkan acceptance
+release Pi terpasang: CSI -> event -> kamera -> skeleton caregiver dan push HP,
+kemudian reboot/reconnect. Gunakan backup sebelum upgrade berikutnya.
 
 Kerjakan bagian yang bisa dilakukan tanpa hardware; tanyakan informasi yang
 benar-benar hilang sambil melanjutkan pekerjaan independen. Jangan mengklaim

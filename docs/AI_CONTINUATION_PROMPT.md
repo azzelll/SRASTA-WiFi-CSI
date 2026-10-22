@@ -21,6 +21,10 @@ tidak, nyatakan kendala tanpa mengarang requirement. Schema dan tes checked-in
 menentukan kebenaran implementasi. Laporkan kode aktual vs klaim dokumentasi.
 
 State penting:
+- Pemilik meminta dashboard Vercel tanpa login, termasuk Akui/Minta bantuan.
+  Mode public memakai RPC perangkat opt-in; jangan menggantinya dengan data
+  lokal/simulasi atau menyisipkan admin key ke browser. Setup/rollback dan
+  bukti terbaru: CLOUD_SETUP.md, docs/evidence/20261023-public-dashboard.md.
 - Software firmware TX/RX, backend/AI, recorder, caregiver React/Vite, Supabase,
   Blynk dan camera burst/skeleton sudah tersedia. Bukan seluruh produk tervalidasi.
 - Fall demo terpilih v8: artifacts/releases/20261001-tcn-v8-motion-calibrated/selected.

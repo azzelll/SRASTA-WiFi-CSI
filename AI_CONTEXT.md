@@ -1,5 +1,16 @@
 # SRASTA AI and Edge Backend Context
 
+## Public caregiver access, 23 October 2026
+
+The owner requested direct Vercel dashboard access without login, including
+acknowledge and assistance. `VITE_ACCESS_MODE=public` uses opt-in device RPCs,
+not a hidden Auth account or anonymous table grants. Public actions have null
+`created_by` and `request_origin=public_dashboard`; edge receipts and the
+two-minute TTL remain authoritative. `cloud` retains membership-based login;
+local Pi access is unchanged. Read `CLOUD_SETUP.md` and
+`docs/evidence/20261023-public-dashboard.md` for setup, deployment evidence and
+revocation. This change does not establish fresh CSI or model accuracy.
+
 ## Pi deployment, 22 October 2026
 
 The three-frame camera/skeleton runtime is now installed at

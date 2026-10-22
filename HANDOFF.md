@@ -1,9 +1,14 @@
-# Handoff SRASTA — diperbarui 22 Oktober 2026
+# Handoff SRASTA — diperbarui 23 Oktober 2026
 
 Dokumen masuk untuk anggota tim dan AI penerus. Ini snapshot software dan
 bukti yang tersedia, bukan pernyataan seluruh produk sudah tervalidasi.
 Pembaruan Pi terbaru: [operasi Pi](docs/PI_OPERATIONS.md) dan
 [bukti 22 Oktober](docs/evidence/20261022-pi-deployment.md). Branch tetap sama.
+
+Pembaruan web 23 Oktober: mode `public` langsung membuka dashboard tanpa login,
+termasuk Akui/Minta bantuan. Perangkat dipilih admin melalui RPC terbatas;
+token Pi dan tabel lain tetap privat. Setup/rollback: `CLOUD_SETUP.md`.
+Status penerapan dan batas bukti: `docs/evidence/20261023-public-dashboard.md`.
 
 ## 1. Ambil versi yang benar
 

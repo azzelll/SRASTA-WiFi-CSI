@@ -1,8 +1,49 @@
 # Akses caregiver dari luar rumah
 
-Target: frontend PWA HTTPS di Vercel; Supabase Auth, Postgres/RLS, Realtime,
-dan Edge Function. Edge membuka koneksi keluar saja. Port inferensi tidak
-dipublikasikan. Pengguna telah login dan mengizinkan pembuatan proyek.
+Target: frontend PWA HTTPS di Vercel; Postgres/RLS dan Edge Function.
+Edge membuka koneksi keluar saja. Port inferensi tidak dipublikasikan.
+Mode `public` membuka dashboard tanpa login; mode `cloud` tetap menyediakan
+Supabase Auth dan membership jika nanti diperlukan.
+
+## Dashboard tanpa login, 23 Oktober 2026
+
+Atas permintaan pemilik, mode `public` mencakup status, riwayat, skeleton
+kejadian, **Akui peringatan** dan **Minta bantuan**. Browser memakai publishable
+key dan RPC terbatas, bukan akun tersembunyi atau service-role key.
+Data berasal dari ringkasan cloud Pi yang sama. Data lama tetap diberi status
+offline/kedaluwarsa; membuka halaman tidak membuat CSI menjadi live.
+
+Jalankan migrasi `202610230001_public_dashboard.sql`, lalu pilih perangkat
+sebagai admin melalui SQL berikut. Ganti placeholder; jangan masukkan token:
+
+```sql
+insert into srasta_private.public_dashboards
+  (device_id,enabled,allow_commands,allow_push)
+values ('<DEVICE_UUID>',true,true,true)
+on conflict(device_id) do update
+  set enabled=true,allow_commands=true,allow_push=true;
+```
+
+Set `VITE_ACCESS_MODE=public` di Vercel lalu deploy ulang. Siapa pun dapat
+melihat ringkasan perangkat yang diaktifkan dan mengirim kedua tindakan.
+Tidak ada anon SELECT/INSERT langsung ke tabel; perangkat lain tetap privat.
+Tindakan publik dicatat dengan `request_origin=public_dashboard`, tanpa
+meniru identitas caregiver. Retry lintas browser berbagi tindakan pending/
+applied pada event yang sama. TTL dua menit dan receipt Pi tetap berlaku.
+Batas server: 30 tindakan baru/menit/perangkat; 64 langganan push publik.
+Push tetap memerlukan izin browser; pengiriman ke HP perlu uji perangkat asli.
+
+Menonaktifkan akses publik tidak membutuhkan penghapusan data:
+
+```sql
+update srasta_private.public_dashboards set enabled=false
+where device_id='<DEVICE_UUID>';
+```
+
+Ini langsung menutup read, tindakan dan antrean push publik. Untuk kembali
+ke login, set `VITE_ACCESS_MODE=cloud`, deploy ulang, dan pastikan membership
+caregiver tersedia. Hasil pengujian/penerapan ada di
+[bukti 23 Oktober](docs/evidence/20261023-public-dashboard.md).
 
 ## Pemilik Vercel, 9 Oktober 2026
 
@@ -113,12 +154,13 @@ insert into public.device_members(device_id,user_id)
 values('<DEVICE_UUID>','<AUTH_USER_UUID>');
 ```
 
-Caregiver login memakai Supabase Auth yang terdaftar pada membership device.
+Pada mode `cloud`, caregiver login memakai Supabase Auth yang terdaftar pada membership device.
 Pengguna mengisi credential caregiver sendiri; jangan membuat password di chat.
 Jangan mengirim undangan kepada orang lain tanpa instruksi pengguna.
 Pengaturan Auth signup perlu mengikuti akun caregiver yang disetujui pemilik.
-RLS: signed-out tidak dapat membaca; caregiver melihat device yang ditugaskan;
+RLS tabel: signed-out tidak dapat membaca langsung; caregiver melihat device yang ditugaskan;
 membership/credentials/status/receipt tidak dapat diubah langsung dari browser.
+Mode `public` memakai RPC opt-in yang dijelaskan di atas.
 
 ## 3. Edge `.env`
 
@@ -143,19 +185,17 @@ menggabungkan notifikasi. Tidak ada klaim pengiriman tepat satu kali.
 ## 4. Vercel
 
 Import/deploy folder `web/`, frameworkVite, build `npm run build`, output`dist`.
-Repository belum di-commit/push oleh pekerjaan ini; gunakan CLI pada folderweb
-atau lakukan publikasi Git sesuai instruksi pengguna.
 Variabel environment Vercel:
 
 ```text
-VITE_ACCESS_MODE=cloud
+VITE_ACCESS_MODE=public
 VITE_SUPABASE_URL=https://<PROJECT_REF>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<publishable key>
 VITE_VAPID_PUBLIC_KEY=<VAPID public key>
 ```
 
 `web/vercel.json` menyediakan SPA rewrite dan security headers. Domain HTTPS
-Vercel dimasukkan pada Supabase Auth Site URL/redirect URLs. UI login tidak
+Vercel dimasukkan pada Supabase Auth Site URL/redirect URLs bila memakai mode `cloud`. Frontend tidak
 memiliki token Blynk, device token, atau Supabase secret key. Localenv tidak
 diunggah; buildfrontend hanya memakai empat variabel yang telah ditentukan.
 

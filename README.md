@@ -1,6 +1,6 @@
 # SRASTA — CSI, edge AI, dan app caregiver
 
-## Handoff tim — diperbarui 22 Oktober 2026
+## Handoff tim — diperbarui 23 Oktober 2026
 
 **Mulai dari [HANDOFF.md](HANDOFF.md)** untuk state, model terpilih, setup clone,
 dan urutan pekerjaan. [Panduan pengambilan data](docs/CAPTURE_QUICKSTART.md)
@@ -9,6 +9,11 @@ menjelaskan port, instruksi CLI, file hasil, QA dan review.
 Snapshot terbaru ada di branch **`handoff/2026-10-21`**; branch September dan
 `main` adalah checkpoint lama. Model demo terpilih dan indeks split ikut Git;
 rekaman CSI mentah dan kredensial tetap lokal.
+
+Dashboard caregiver mendukung akses langsung tanpa login, termasuk Akui dan
+Minta bantuan, melalui mode `public` dan perangkat yang diaktifkan admin.
+[Setup dan pencabutan akses](CLOUD_SETUP.md) ·
+[Bukti dan status penerapan](docs/evidence/20261023-public-dashboard.md).
 
 **Pi sudah diperbarui** ke `20261022-demo-v8-camera-burst-r3`. Acceptance ARM,
 burst sensor kamera tiga frame dan restart layanan lolos; Blynk/cloud worker

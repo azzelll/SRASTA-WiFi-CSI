@@ -26,11 +26,12 @@ import {
   accessMode,
   cloud,
   cloudConfigured,
-  commands,
+  publicAccess,
+  remoteAccess,
   enablePush,
   listDevices,
   localSnapshot,
-  remoteSnapshot,
+  remoteState,
   sendCommand,
 } from "./connection";
 import {
@@ -90,7 +91,7 @@ export function App() {
   const pendingIds = useRef(new Map<string, string>());
   const currentUserId = useRef<string | null>(null);
   const actionScope = useRef("");
-  actionScope.current = `${userEmail || "local"}:${deviceId}`;
+  actionScope.current = `${userEmail || (publicAccess ? "public" : "local")}:${deviceId}`;
   const active = isFresh(snapshot, receivedAt, now);
   const events = snapshot?.events || [];
   const alerts = events.filter(isAlert).sort((a, b) =>
@@ -100,7 +101,7 @@ export function App() {
   const openAlerts = alerts.filter((event) => !event.acknowledged_at_s && !receipts.some(row => row.event_uid === event.event_uid && row.action === "acknowledge" && row.status === "applied"));
   const quickAckPending = !!openAlerts[0] && receipts.some(row => row.event_uid === openAlerts[0].event_uid && row.action === "acknowledge" && row.status === "pending");
   const state = snapshot?.state || "standby";
-  const profileKey = `srasta:${currentUserId.current || "local"}:${deviceId || "local"}`;
+  const profileKey = `srasta:${currentUserId.current || (publicAccess ? "public" : "local")}:${deviceId || "local"}`;
 
   useEffect(() => {
     setProfile({
@@ -142,7 +143,7 @@ export function App() {
     return () => data.subscription.unsubscribe();
   }, []);
   useEffect(() => {
-    if (!userEmail || !cloud) return;
+    if (!remoteAccess || (!publicAccess && !userEmail) || !cloud) return;
     let cancelled = false;
     listDevices()
       .then((rows) => {
@@ -153,7 +154,7 @@ export function App() {
           setDeviceId(target || rows[0]?.id || "");
           if (requested && !target) {
             notificationTarget.current = {device: "", event: ""};
-            setNotice("Perangkat pada notifikasi tidak tersedia untuk akun ini.");
+            setNotice("Perangkat pada notifikasi tidak tersedia pada dashboard ini.");
           } else if (target && notificationTarget.current.event) {
             setPage("alerts");
           }
@@ -175,20 +176,18 @@ export function App() {
     lastObserved.current = null;
     async function readSnapshot() {
       try {
+        const remote = remoteAccess && deviceId ? await remoteState(deviceId) : null;
         const next =
-          accessMode === "cloud"
+          remoteAccess
             ? deviceId
-              ? await remoteSnapshot(deviceId)
+              ? remote?.snapshot || null
               : null
             : await localSnapshot();
         if (cancelled) return;
         setSnapshot(previous => previous && next && previous.updated_at_s > next.updated_at_s ? previous : next);
         setReceivedAt(Date.now());
         setConnectionError("");
-        if (accessMode === "cloud" && deviceId) {
-          const nextReceipts = await commands(deviceId);
-          if (!cancelled) setReceipts(rows => mergeReceipts(rows, nextReceipts));
-        }
+        if (remote) setReceipts(rows => mergeReceipts(rows, remote.receipts));
       } catch (error) {
         if (!cancelled)
           setConnectionError(
@@ -196,11 +195,11 @@ export function App() {
           );
       }
     }
-    if (accessMode === "cloud" && (!userEmail || !deviceId)) return;
+    if (remoteAccess && ((!publicAccess && !userEmail) || !deviceId)) return;
     const poller = coalesceRefresh(readSnapshot);
     const refresh = () => { void poller.request(); };
     refresh();
-    const interval = setInterval(refresh, accessMode === "cloud" ? 5000 : 3000);
+    const interval = setInterval(refresh, remoteAccess ? 5000 : 3000);
     const source =
       accessMode === "local" ? new EventSource("/api/caregiver/stream") : null;
     source?.addEventListener("snapshot", (event) => {
@@ -216,7 +215,7 @@ export function App() {
       }
     });
     const channel =
-      cloud && deviceId
+      !publicAccess && cloud && deviceId
         ? cloud
             .channel(`device-status:${deviceId}`)
             .on(
@@ -528,12 +527,12 @@ export function App() {
               </button>
             </div>
           )}
-          {accessMode === "cloud" && devices.length === 0 && (
+          {remoteAccess && devices.length === 0 && (
             <div className="empty">
               <ShieldCheck />
               <h2>Belum ada perangkat terhubung</h2>
               <p>
-                Minta pemilik sistem mendaftarkan akun Anda sebagai caregiver.
+                {publicAccess ? "Perangkat belum tersedia pada dashboard ini." : "Minta pemilik sistem mendaftarkan akun Anda sebagai caregiver."}
               </p>
             </div>
           )}
@@ -636,7 +635,7 @@ export function App() {
               <div className="settings-grid">
                 {page === "settings" && <section className="card">
                   <h3>Area pemantauan</h3>
-                  {accessMode === "cloud" && (
+                  {remoteAccess && (
                     <label>
                       Perangkat
                       <select
@@ -690,7 +689,7 @@ export function App() {
                 </section>}
                 {page === "devices" && <section className="card">
                   <h3>Status perangkat</h3>
-                  {accessMode === "cloud" && <label>Perangkat<select value={deviceId} onChange={e => setDeviceId(e.target.value)}>{devices.map(device => <option key={device.id} value={device.id}>{device.label}</option>)}</select></label>}
+                  {remoteAccess && <label>Perangkat<select value={deviceId} onChange={e => setDeviceId(e.target.value)}>{devices.map(device => <option key={device.id} value={device.id}>{device.label}</option>)}</select></label>}
                   <HealthRow icon={Wifi} label="Edge processor" ok={active && snapshot?.source === "live"} value={active ? snapshot?.source === "simulator" ? "Simulasi" : "Online" : "Offline"} />
                   <HealthRow icon={Radio} label="Receiver CSI" {...receiverStatus(snapshot, active)} />
                   <HealthRow icon={Camera} label="Validasi kamera" ok={active && !!snapshot?.camera.available} value={!active ? "Status belum terkini" : snapshot?.camera.active ? "Sedang memvalidasi" : snapshot?.camera.available ? "Siap saat anomali" : "Belum tersedia"} />
@@ -704,7 +703,7 @@ export function App() {
                   {!active && <p>Catatan terakhir dari edge; nilai di bawah bukan pengukuran terkini.</p>}
                   <dl className="metrics">
                     <dt>Mode akses</dt>
-                    <dd>{accessMode === "cloud" ? "Jarak jauh" : "Lokal"}</dd>
+                    <dd>{publicAccess ? "Jarak jauh tanpa login" : remoteAccess ? "Jarak jauh" : "Lokal"}</dd>
                     <dt>Sumber data</dt>
                     <dd>{snapshot?.source || "Belum tersedia"}</dd>
                     <dt>Paket valid</dt>
@@ -766,9 +765,9 @@ export function App() {
                   </p>
                 </section>}
                 {page === "settings" && <section className="card">
-                  <h3>Akun caregiver</h3>
-                  <p>{userEmail || "Sesi lokal pada perangkat edge"}</p>
-                  {cloud && (
+                  <h3>{publicAccess ? "Akses dashboard" : "Akun caregiver"}</h3>
+                  <p>{publicAccess ? "Dashboard dapat digunakan tanpa login." : userEmail || "Sesi lokal pada perangkat edge"}</p>
+                  {!publicAccess && cloud && (
                     <button
                       className="secondary"
                       onClick={() => cloud?.auth.signOut()}

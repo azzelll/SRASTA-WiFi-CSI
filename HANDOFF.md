@@ -9,6 +9,9 @@ Pembaruan web 23 Oktober: mode `public` langsung membuka dashboard tanpa login,
 termasuk Akui/Minta bantuan. Perangkat dipilih admin melalui RPC terbatas;
 token Pi dan tabel lain tetap privat. Setup/rollback: `CLOUD_SETUP.md`.
 Status penerapan dan batas bukti: `docs/evidence/20261023-public-dashboard.md`.
+Supabase dan Vercel sudah diterapkan; browser produksi tanpa sesi membuka
+Beranda dan menerima ringkasan CSI fresh pada 23 Oktober sekitar 00:31 WIB.
+Ini tidak membuktikan akurasi deteksi atau tindakan/push pada HP/Pi fisik.
 
 ## 1. Ambil versi yang benar
 

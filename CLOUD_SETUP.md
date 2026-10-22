@@ -7,6 +7,9 @@ Supabase Auth dan membership jika nanti diperlukan.
 
 ## Dashboard tanpa login, 23 Oktober 2026
 
+Sudah aktif di <https://srasta-caregiver.vercel.app>. Supabase, environment
+Production Vercel dan browser tanpa sesi diperiksa; lihat bukti di bawah.
+
 Atas permintaan pemilik, mode `public` mencakup status, riwayat, skeleton
 kejadian, **Akui peringatan** dan **Minta bantuan**. Browser memakai publishable
 key dan RPC terbatas, bukan akun tersembunyi atau service-role key.

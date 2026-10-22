@@ -12,6 +12,8 @@ rekaman CSI mentah dan kredensial tetap lokal.
 
 Dashboard caregiver mendukung akses langsung tanpa login, termasuk Akui dan
 Minta bantuan, melalui mode `public` dan perangkat yang diaktifkan admin.
+Sudah diterapkan di <https://srasta-caregiver.vercel.app>; browser tanpa sesi
+dan penerimaan ringkasan CSI fresh diperiksa 23 Oktober sekitar 00:31 WIB.
 [Setup dan pencabutan akses](CLOUD_SETUP.md) ·
 [Bukti dan status penerapan](docs/evidence/20261023-public-dashboard.md).
 

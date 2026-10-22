@@ -11,6 +11,12 @@ local Pi access is unchanged. Read `CLOUD_SETUP.md` and
 `docs/evidence/20261023-public-dashboard.md` for setup, deployment evidence and
 revocation. This change does not establish fresh CSI or model accuracy.
 
+Deployment was completed after owner confirmation. Production opens without
+a user session; public HTTPS checks and browser settings passed. At 00:31 WIB
+the cloud snapshot was live/fresh (8,314 accepted frames, observation age 0.56 s).
+This separate runtime observation does not establish detection accuracy,
+camera trigger acceptance, physical command receipt or phone push delivery.
+
 ## Pi deployment, 22 October 2026
 
 The three-frame camera/skeleton runtime is now installed at

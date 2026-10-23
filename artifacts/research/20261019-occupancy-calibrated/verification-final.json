@@ -1,0 +1,26 @@
+{
+  "public_source_only": true,
+  "source_payload_hashes_unchanged": 13353,
+  "subject_disjoint": true,
+  "independent_test": false,
+  "local_deployment_ready": false,
+  "candidate_confusion_matrices_verified": 36,
+  "tasks": {
+    "breathing": {
+      "reloaded_real_recordings_checked": 20,
+      "confusion_matrix_verified": true,
+      "live_loaders_reject": true
+    },
+    "presence": {
+      "reloaded_real_recordings_checked": 30,
+      "confusion_matrix_verified": true,
+      "live_loaders_reject": true
+    },
+    "breathing_three": {
+      "reloaded_real_recordings_checked": 30,
+      "confusion_matrix_verified": true,
+      "live_loaders_reject": true
+    }
+  },
+  "passed": true
+}

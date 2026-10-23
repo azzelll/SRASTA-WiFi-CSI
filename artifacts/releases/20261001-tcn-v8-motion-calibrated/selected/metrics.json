@@ -1,0 +1,86 @@
+{
+  "threshold": 0.4500000000000001,
+  "classification": {
+    "precision": {
+      "nonfall": 0.6153846153846154,
+      "fall": 0.6578947368421053
+    },
+    "recall": {
+      "nonfall": 0.6486486486486487,
+      "fall": 0.625
+    },
+    "f1": {
+      "nonfall": 0.631578947368421,
+      "fall": 0.6410256410256411
+    },
+    "macro_f1": 0.6363022941970311,
+    "support": {
+      "nonfall": 37,
+      "fall": 40
+    },
+    "confusion_matrix": [
+      [
+        24,
+        13
+      ],
+      [
+        15,
+        25
+      ]
+    ]
+  },
+  "proxy_gates_pass": false,
+  "parity": {
+    "windows_compared": 77,
+    "mean_absolute_error": 0.002951559377834201,
+    "max_absolute_error": 0.009990036487579346,
+    "argmax_agreement": 0.987012987012987,
+    "mean_tflite_inference_ms": 0.19194209092453896,
+    "thresholds": {
+      "mean_absolute_error_max": 0.02,
+      "max_absolute_error_max": 0.1,
+      "argmax_agreement_min": 0.95
+    },
+    "status": "passed"
+  },
+  "model_size_bytes": 65592,
+  "evaluation": "subject-disjoint validation; recording-label centered-window proxy",
+  "event_local_four_class_status": "unavailable; deployment gate incomplete",
+  "unavailable": {
+    "event_recall": {
+      "value": null,
+      "status": "not_available",
+      "reason": "Curated H5 clips lack continuous packet timestamps, onset/offset, inactivity annotations, and nonfall exposure duration."
+    },
+    "event_precision": {
+      "value": null,
+      "status": "not_available",
+      "reason": "Curated H5 clips lack continuous packet timestamps, onset/offset, inactivity annotations, and nonfall exposure duration."
+    },
+    "event_f1": {
+      "value": null,
+      "status": "not_available",
+      "reason": "Curated H5 clips lack continuous packet timestamps, onset/offset, inactivity annotations, and nonfall exposure duration."
+    },
+    "false_alerts_per_hour": {
+      "value": null,
+      "status": "not_available",
+      "reason": "Curated H5 clips lack continuous packet timestamps, onset/offset, inactivity annotations, and nonfall exposure duration."
+    },
+    "packet_drop_rate": {
+      "value": null,
+      "status": "not_available",
+      "reason": "Curated H5 clips lack continuous packet timestamps, onset/offset, inactivity annotations, and nonfall exposure duration."
+    },
+    "suspected_fall_latency_ms": {
+      "value": null,
+      "status": "not_available",
+      "reason": "Curated H5 clips lack continuous packet timestamps, onset/offset, inactivity annotations, and nonfall exposure duration."
+    },
+    "confirmed_fall_latency_ms": {
+      "value": null,
+      "status": "not_available",
+      "reason": "Curated H5 clips lack continuous packet timestamps, onset/offset, inactivity annotations, and nonfall exposure duration."
+    }
+  }
+}

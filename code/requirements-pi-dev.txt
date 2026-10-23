@@ -1,0 +1,5 @@
+# Development/tests on Raspberry Pi ARM64, CPython 3.13.
+# Install only in a fresh clone venv, never the shared production/rollback venv.
+-r requirements-handoff.txt
+ai-edge-litert==2.2.0
+Pillow==12.0.0

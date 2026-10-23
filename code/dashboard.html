@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SRASTA Fall Monitor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5f5f5;--card:#fff;--border:#e0e0e0;--text:#1a1a1a;--dim:#888;--ok:#16a34a;--warn:#d97706;--danger:#dc2626;--accent:#2563eb}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.alert-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:100;background:var(--danger);color:#fff;text-align:center;padding:24px 16px;animation:pulse .8s ease-in-out infinite}
+.alert-banner h2{font-size:2rem;font-weight:800;letter-spacing:4px;text-transform:uppercase}
+.alert-banner p{font-size:.9rem;margin-top:4px;opacity:.85}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{font-size:.85rem;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.topbar .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.danger{background:var(--danger);animation:blink .5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.topbar .time{font-size:.75rem;color:var(--dim);font-variant-numeric:tabular-nums}
+
+.layout{display:grid;grid-template-columns:280px 1fr;gap:0;min-height:calc(100vh - 49px)}
+.sidebar{background:#fff;border-right:1px solid var(--border);padding:16px}
+.main{padding:20px}
+
+.panel{margin-bottom:20px}
+.panel-label{font-size:.6rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:6px;font-weight:600}
+.panel-value{font-size:1.8rem;font-weight:800;line-height:1}
+.panel-value.ok{color:var(--ok)}.panel-value.warn{color:var(--warn)}.panel-value.danger{color:var(--danger)}
+
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.75rem}
+.row:last-child{border:none}
+.row .k{color:var(--dim)}.row .v{font-weight:600;font-variant-numeric:tabular-nums}
+
+.chart-area{background:#fff;border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px}
+.chart-title{font-size:.6rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);margin-bottom:12px;font-weight:600}
+.bars{display:flex;align-items:flex-end;gap:1px;height:160px}
+.bar{flex:1;background:var(--accent);border-radius:1px 1px 0 0;min-width:1px;transition:height .1s}
+canvas{width:100%;height:120px;display:block}
+
+.log{background:#fff;border:1px solid var(--border);border-radius:6px;padding:12px;max-height:180px;overflow-y:auto;font-size:.7rem;font-family:'SF Mono',Consolas,monospace}
+.log-entry{padding:3px 0;border-bottom:1px solid #f0f0f0;display:flex;gap:8px}
+.log-entry:last-child{border:none}
+.log-entry .t{color:var(--dim);min-width:70px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="alert-banner" id="alert-banner">
+<h2>&#9888; FALL DETECTED</h2>
+<p>Possible fall event identified &mdash; check subject</p>
+</div>
+
+<div class="topbar">
+<h1><span class="dot ok" id="status-dot"></span>SRASTA Fall Monitor</h1>
+<span class="time" id="clock"></span>
+</div>
+
+<div class="layout">
+<div class="sidebar">
+<div class="panel">
+<div class="panel-label">Status</div>
+<div class="panel-value ok" id="state-display">NORMAL</div>
+</div>
+<div class="panel">
+<div class="panel-label">Confidence</div>
+<div class="panel-value" id="model-score" style="font-size:1.4rem">0%</div>
+</div>
+<div class="panel">
+<div class="row"><span class="k">Motion energy</span><span class="v" id="motion-energy">0</span></div>
+<div class="row"><span class="k">Inference</span><span class="v" id="inference-latency">-</span></div>
+<div class="row"><span class="k">CSI frames</span><span class="v" id="accepted-frames">0</span></div>
+<div class="row"><span class="k">RSSI</span><span class="v" id="rssi">-</span></div>
+<div class="row"><span class="k">Channel</span><span class="v" id="channel">-</span></div>
+<div class="row"><span class="k">Sensor link</span><span class="v" id="transport-status">-</span></div>
+</div>
+</div>
+
+<div class="main">
+<div class="chart-area">
+<div class="chart-title">CSI Amplitude &mdash; 52 Subcarriers</div>
+<div class="bars" id="amplitude-bars"></div>
+</div>
+<div class="chart-area">
+<div class="chart-title">Signal History</div>
+<canvas id="csi-canvas"></canvas>
+</div>
+<div class="chart-area">
+<div class="chart-title">Event Log</div>
+<div class="log" id="event-log"></div>
+</div>
+</div>
+</div>
+
+<script>
+var API = location.origin;
+var historyData = [];
+var maxHistory = 250;
+var prevState = 'normal';
+
+function updateUI(status, csi) {
+  var state = (status.state || 'normal').toUpperCase();
+  var stateEl = document.getElementById('state-display');
+  var dot = document.getElementById('status-dot');
+  var banner = document.getElementById('alert-banner');
+
+  if (state === 'CONFIRMED_FALL') {
+    stateEl.textContent = 'FALL DETECTED';
+    stateEl.className = 'panel-value danger';
+    dot.className = 'dot danger';
+    banner.style.display = 'block';
+  } else if (state === 'SUSPECTED_FALL') {
+    stateEl.textContent = 'SUSPECTED';
+    stateEl.className = 'panel-value warn';
+    dot.className = 'dot warn';
+    banner.style.display = 'none';
+  } else {
+    stateEl.textContent = 'NORMAL';
+    stateEl.className = 'panel-value ok';
+    dot.className = 'dot ok';
+    banner.style.display = 'none';
+  }
+
+  document.getElementById('model-score').textContent = ((status.fall_probability || 0) * 100).toFixed(0) + '%';
+  document.getElementById('motion-energy').textContent = (status.motion_energy || 0).toFixed(4);
+  document.getElementById('inference-latency').textContent = status.inference_latency_ms != null ? status.inference_latency_ms.toFixed(1) + ' ms' : '-';
+  document.getElementById('accepted-frames').textContent = status.accepted_frames || 0;
+  document.getElementById('rssi').textContent = (status.latest_csi && status.latest_csi.rssi_dbm != null ? status.latest_csi.rssi_dbm : '-') + ' dBm';
+  document.getElementById('channel').textContent = status.capture_channel || '-';
+
+  var t = status.transport || {};
+  var ts = document.getElementById('transport-status');
+  ts.textContent = t.connected ? 'Connected' : 'Disconnected';
+  ts.style.color = t.connected ? 'var(--ok)' : 'var(--danger)';
+
+  var frames = csi.frames || [];
+  var frame = frames[frames.length - 1];
+  if (frame) {
+    var amp = frame.amplitude || [];
+    var bars = document.getElementById('amplitude-bars');
+    bars.innerHTML = '';
+    var maxVal = 1;
+    for (var i = 0; i < amp.length; i++) { if (amp[i] > maxVal) maxVal = amp[i]; }
+    for (var i = 0; i < amp.length; i++) {
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = (amp[i] / maxVal * 100) + '%';
+      if (state === 'CONFIRMED_FALL') bar.style.background = 'var(--danger)';
+      bars.appendChild(bar);
+    }
+
+    historyData.push(amp.map(Number));
+    if (historyData.length > maxHistory) historyData.shift();
+    drawHistory();
+  }
+
+  prevState = state;
+}
+
+function drawHistory() {
+  var canvas = document.getElementById('csi-canvas');
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width = canvas.offsetWidth;
+  var H = canvas.height = canvas.offsetHeight;
+  ctx.clearRect(0, 0, W, H);
+  if (historyData.length < 2) return;
+
+  var rows = historyData[0].length;
+  var cols = historyData.length;
+  var cellW = W / cols;
+  var cellH = H / rows;
+
+  var maxVal = 1;
+  for (var x = 0; x < cols; x++) {
+    for (var y = 0; y < historyData[x].length; y++) {
+      if (historyData[x][y] > maxVal) maxVal = historyData[x][y];
+    }
+  }
+
+  for (var x = 0; x < cols; x++) {
+    var row = historyData[x];
+    for (var y = 0; y < row.length; y++) {
+      var t = row[y] / maxVal;
+      var r = Math.round(245 - t * 200);
+      var g = Math.round(245 - t * 180);
+      var b = Math.round(245 - t * 50);
+      ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+      ctx.fillRect(x * cellW, y * cellH, cellW + 0.5, cellH + 0.5);
+    }
+  }
+}
+
+function updateClock() {
+  var now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString();
+}
+
+async function fetchStatus() {
+  try {
+    var res = await fetch(API + '/status');
+    var status = await res.json();
+    var csiRes = await fetch(API + '/csi?limit=1');
+    var csi = await csiRes.json();
+    updateUI(status, csi);
+  } catch (e) {
+    document.getElementById('state-display').textContent = 'OFFLINE';
+    document.getElementById('state-display').className = 'panel-value warn';
+    document.getElementById('status-dot').className = 'dot warn';
+  }
+}
+
+async function triggerFall() {
+  try { await fetch(API + '/demo/fall', { method: 'POST' }); } catch (e) {}
+}
+
+async function resetState() {
+  try { await fetch(API + '/demo/reset', { method: 'POST' }); } catch (e) {}
+}
+
+var eventSource;
+function connectSSE() {
+  eventSource = new EventSource(API + '/csi/stream');
+  eventSource.addEventListener('csi', function(e) {
+    try {
+      var frame = JSON.parse(e.data);
+      var log = document.getElementById('event-log');
+      var time = new Date().toLocaleTimeString();
+      var item = document.createElement('div');
+      item.className = 'log-entry';
+      item.innerHTML = '<span class="t">' + time + '</span><span>SEQ ' + frame.sequence + '  RSSI ' + frame.rssi_dbm + 'dBm  CH' + frame.channel + '</span>';
+      log.prepend(item);
+      while (log.children.length > 80) log.removeChild(log.lastChild);
+    } catch (err) {}
+  });
+  eventSource.onerror = function() { setTimeout(connectSSE, 3000); };
+}
+
+fetchStatus();
+setInterval(fetchStatus, 1000);
+setInterval(updateClock, 1000);
+updateClock();
+connectSSE();
+
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.code === 'Space' || e.key === ' ') {
+    e.preventDefault();
+    e.stopPropagation();
+    triggerFall();
+  } else if (e.code === 'KeyR' || e.key === 'r' || e.key === 'R') {
+    e.preventDefault();
+    e.stopPropagation();
+    resetState();
+  }
+}, true);
+</script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 tensorflow>=2.14
 numpy
-scipy
 h5py
 scikit-learn
-pandas
-requests
+joblib
+fastapi
+uvicorn
+paho-mqtt>=2.1,<3
+httpx2

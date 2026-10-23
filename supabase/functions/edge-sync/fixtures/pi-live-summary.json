@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "updated_at_s": 1791134905.6426315,
+  "observed_at_s": 1791134905.6421165,
+  "source": "live",
+  "simulation": false,
+  "state": "normal",
+  "state_verified": true,
+  "monitoring_online": true,
+  "stream_age_s": 0.041223206999347894,
+  "activity": "Tubuh relatif diam",
+  "motion_energy": 0.00017405144171789289,
+  "presence": "unknown",
+  "inactivity": null,
+  "stationary_duration_s": null,
+  "breathing_condition": null,
+  "fall_confidence": 0.57421875,
+  "breathing_bpm": null,
+  "breathing_quality": 13,
+  "breathing_reason": "Periodisitas belum cukup andal",
+  "signal_quality": 69,
+  "capture_rate_hz": 32.1,
+  "accepted_frames": 1420,
+  "quarantined_frames": 0,
+  "packet_loss_rate": 0.0,
+  "inference_ms": 4.242717000124685,
+  "serial_connected": true,
+  "serial_reconnects": 0,
+  "alarm": {
+    "requested": false,
+    "available": false,
+    "active": false,
+    "mode": "disabled",
+    "last_error": null
+  },
+  "camera": {
+    "available": false,
+    "active": false,
+    "result": "Kamera belum tersambung"
+  },
+  "blynk_connected": true,
+  "remote": {
+    "enabled": true,
+    "connected": false,
+    "last_success_s": null,
+    "last_error": "Sync failed: HTTPError",
+    "worker_running": true
+  },
+  "model": {
+    "label": "TCN-Lite INT8",
+    "validation": "Kandidat engineering; validasi ruangan belum selesai",
+    "presence_available": false,
+    "activity_classes_available": false
+  },
+  "events": []
+}

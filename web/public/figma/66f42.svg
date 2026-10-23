@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="VISUAL/Content icon/metric 0" clip-path="url(#clip0_0_111)">
+<path id="Vector" d="M23 46C35.7025 46 46 35.7025 46 23C46 10.2975 35.7025 0 23 0C10.2975 0 0 10.2975 0 23C0 35.7025 10.2975 46 23 46Z" fill="#E11D28"/>
+<g id="Group">
+<path id="Vector_2" d="M25 16C25 17.1046 24.1046 18 23 18C21.8954 18 21 17.1046 21 16C21 14.8954 21.8954 14 23 14C24.1046 14 25 14.8954 25 16Z" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+<path id="Vector_3" d="M20 33L22 26L19 23L21 19L25 22L28 23" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+<path id="Vector_4" d="M25 33L23 26L27 24L29 28" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" stroke="white"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_111">
+<rect width="46" height="46" fill="white"/>
+</clipPath>
+</defs>
+</svg>

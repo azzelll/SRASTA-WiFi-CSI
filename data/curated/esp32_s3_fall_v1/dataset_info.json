@@ -1,0 +1,85 @@
+{
+  "dataset_name": "esp32_s3_fall_v1",
+  "source": "CSI-Bench FallDetection/device_ESP32",
+  "source_license": "CC BY-NC-ND 4.0; local research use only",
+  "raw_root": "data/csi-bench",
+  "source_shape": "[64, time, 1]",
+  "canonical_shape": "[time, 52]",
+  "usable_subcarrier_indices": [
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58
+  ],
+  "sample_count": 472,
+  "class_counts": {
+    "fall": 277,
+    "nonfall": 195
+  },
+  "split_class_counts": {
+    "train": {
+      "fall": 170,
+      "nonfall": 118
+    },
+    "validation": {
+      "fall": 40,
+      "nonfall": 37
+    },
+    "test": {
+      "fall": 40,
+      "nonfall": 40
+    },
+    "excluded": {
+      "fall": 27
+    }
+  },
+  "split_rule": "subject-disjoint; subjects missing a class are excluded"
+}

@@ -1,0 +1,45 @@
+{
+  "access": "anon publishable key only; no user session",
+  "listed_devices": 1,
+  "snapshot": {
+    "source": "live",
+    "monitoring_online": true,
+    "serial_connected": true,
+    "state_verified": true,
+    "accepted_frames": 8314,
+    "state": "normal",
+    "updated_at_s": 1792690261.916267,
+    "observed_at_s": 1792690261.9025,
+    "age_s_at_read": 0.55,
+    "observation_age_s_at_read": 0.56,
+    "events_count": 0
+  },
+  "read_status": 200,
+  "unpublished_device": "not exposed",
+  "private_tables": {
+    "devices": 401,
+    "device_status": 401,
+    "care_events": 401,
+    "device_members": 401,
+    "caregiver_commands": 401,
+    "push_subscriptions": 401
+  },
+  "invalid_action_status": 400,
+  "checked_at_utc": "2026-10-22T17:31:02.463620+00:00",
+  "browser": {
+    "production_url": "https://srasta-caregiver.vercel.app",
+    "direct_dashboard_without_login": true,
+    "selected_device": "SRASTA Edge",
+    "public_settings_without_logout": true,
+    "console_errors_or_warnings": 0,
+    "live_alert_count": 0,
+    "physical_actions_tested": false,
+    "phone_push_tested": false
+  },
+  "deployment": {
+    "id": "dpl_8DFAdEvqcwny1MaxcHAQk8rmdLKe",
+    "state": "READY",
+    "source_commit": "c666159",
+    "access_mode": "public"
+  }
+}

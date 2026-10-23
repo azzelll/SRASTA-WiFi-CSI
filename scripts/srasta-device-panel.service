@@ -1,0 +1,16 @@
+[Unit]
+Description=SRASTA local CSI score OLED LED and piezo panel
+After=srasta-edge.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/SRASTA-WiFi-CSI/code
+ExecStart=/usr/bin/python3 -u -m srasta_csi.device_panel --buzzer passive --status-file %h/srasta-edge/state/device-panel.json
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=5
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

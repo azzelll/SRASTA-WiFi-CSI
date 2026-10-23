@@ -1,0 +1,14 @@
+{
+  "target_rate_hz": 100.0,
+  "max_gap_s": 0.05,
+  "hampel_window": 7,
+  "hampel_sigma": 3.0,
+  "lowpass_hz": 10.0,
+  "baseline_warmup_frames": 25,
+  "baseline_alpha": 0.002,
+  "baseline_epsilon": 0.001,
+  "motion_energy_threshold": 0.0003443831083131954,
+  "capture_profile_hash": "21a883834095a89024ad75c9ac2494640fd574aa748d456a30baf4477f4a360e",
+  "normalized_clip": 2.0,
+  "hash": "3c72e19c465732eb7a07dab8dae24b78e40bf65e99cdff0cdd2d892eabc73a05"
+}

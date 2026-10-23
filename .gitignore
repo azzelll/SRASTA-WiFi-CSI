@@ -1,0 +1,30 @@
+# New outputs stay local. Reviewed handoff model snapshots are explicitly tracked.
+# Never commit raw CSI, credentials, databases, private caches or session logs.
+artifacts/
+data/
+code/config_edge.env
+code/config_blynk.env
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-*
+.codex/
+screenlog.*
+aip-run-*.jsonl
+*.log
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+firmware/**/build/
+firmware/**/sdkconfig
+firmware/**/sdkconfig.old
+web/node_modules/
+web/dist/
+output/
+supabase/.temp/
+web/.vercel/
+*.tsbuildinfo
+.cache/

@@ -1,0 +1,76 @@
+{
+  "method": "1st percentile of primary train fall-window motion; no validation selection",
+  "source_model_sha256": "ac8ca20e9bd0c70a006b9fc7c410c44e6e887e8ffd1174692be3ac3277436e66",
+  "classifier_weights_unchanged": true,
+  "manifest_sha256": "088477e193c9ea5e1571cd6f36a2450ca888d7c075403cc8f403bc8f64129e29",
+  "train_recordings": 288,
+  "before_motion_threshold": 0.02,
+  "motion_threshold": 0.0003443831083131954,
+  "train_fall_motion_gate_coverage": 0.9882352941176471,
+  "evaluation": "subject-disjoint validation recording-level trigger proxy; not event recall or local accuracy",
+  "before": {
+    "precision": {
+      "nonfall": 0.4805194805194805,
+      "fall": 0.0
+    },
+    "recall": {
+      "nonfall": 1.0,
+      "fall": 0.0
+    },
+    "f1": {
+      "nonfall": 0.6491228070175439,
+      "fall": 0.0
+    },
+    "macro_f1": 0.32456140350877194,
+    "support": {
+      "nonfall": 37,
+      "fall": 40
+    },
+    "confusion_matrix": [
+      [
+        37,
+        0
+      ],
+      [
+        40,
+        0
+      ]
+    ]
+  },
+  "after": {
+    "precision": {
+      "nonfall": 0.6153846153846154,
+      "fall": 0.6578947368421053
+    },
+    "recall": {
+      "nonfall": 0.6486486486486487,
+      "fall": 0.625
+    },
+    "f1": {
+      "nonfall": 0.631578947368421,
+      "fall": 0.6410256410256411
+    },
+    "macro_f1": 0.6363022941970311,
+    "support": {
+      "nonfall": 37,
+      "fall": 40
+    },
+    "confusion_matrix": [
+      [
+        24,
+        13
+      ],
+      [
+        15,
+        25
+      ]
+    ]
+  },
+  "test": "U21 was already reported for v2; not reopened or used here",
+  "deployment_ready": false,
+  "remaining": [
+    "local safe negative exposure and fall event protocol",
+    "independent four-class data",
+    "Pi measurements"
+  ]
+}

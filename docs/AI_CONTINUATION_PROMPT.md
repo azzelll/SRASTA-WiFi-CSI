@@ -9,8 +9,8 @@ Raspberry Pi + validasi kamera event-only. Jangan mulai ulang atau mengganti
 arsitektur/UI tanpa membaca implementasi yang sudah ada.
 
 Repo: https://github.com/azzelll/SRASTA-WiFi-CSI
-Branch handoff terbaru: handoff/2026-10-21 (main/branch September lebih lama).
-Jika belum tersedia, clone --branch handoff/2026-10-21, lalu bekerja dari root.
+Branch utama terbaru: main, termasuk handoff 21 Oktober dan panel Pi PR #2.
+Jika belum tersedia, clone --branch main, lalu bekerja dari root.
 Periksa git status, branch dan commit dahulu; pertahankan perubahan pengguna.
 
 Baca berurutan: AGENTS.md, AGENT.md, AI_CONTEXT.md, HANDOFF.md,
@@ -46,6 +46,12 @@ State penting:
   TX/RX tidak dapat dipasang saat itu: belum ada uji CSI asli/trigger kejadian
   atau reboot fisik release baru. Cek ulang status sekarang; jangan flash tanpa
   mapping TX/RX yang jelas. Backup/rollback dan perintah ada PI_OPERATIONS.md.
+- Panel OLED/LED/piezo tersedia sebagai service terpisah, membaca API lokal.
+  Ambang skor >=85% merah, 75–<85% kuning, <75% hijau; offline/stale tidak hijau.
+  Baca docs/PI_DEVICE_PANEL.md dan docs/evidence/20261023-device-panel.md:
+  CSI sempat live saat pemasangan, kemudian offline pada pemeriksaan berikutnya.
+  Self-test panel bukan bukti akurasi. Integrasi main dan tes Mac dicatat pada
+  docs/evidence/20261023-main-integration.md.
 
 Kontrak CSI: LLTF/HT20, 128 signed bytes [imaginary,real] -> 64 amplitudo ->
 fixed mask centered 6..31 dan 33..58 -> 52 fitur. Live firmware channel 6,

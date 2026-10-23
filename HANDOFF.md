@@ -3,7 +3,9 @@
 Dokumen masuk untuk anggota tim dan AI penerus. Ini snapshot software dan
 bukti yang tersedia, bukan pernyataan seluruh produk sudah tervalidasi.
 Pembaruan Pi terbaru: [operasi Pi](docs/PI_OPERATIONS.md) dan
-[bukti 22 Oktober](docs/evidence/20261022-pi-deployment.md). Branch tetap sama.
+[bukti 22 Oktober](docs/evidence/20261022-pi-deployment.md). Cabang utama kini
+`main`; handoff dan panel Pi digabung melalui PR #2 pada 23 Oktober.
+[Bukti integrasi software](docs/evidence/20261023-main-integration.md).
 
 Pembaruan web 23 Oktober: mode `public` langsung membuka dashboard tanpa login,
 termasuk Akui/Minta bantuan. Perangkat dipilih admin melalui RPC terbatas;
@@ -23,15 +25,16 @@ Ini bukan hasil validasi akurasi atau perubahan state machine/model.
 ## 1. Ambil versi yang benar
 
 ```bash
-git clone --branch handoff/2026-10-21 https://github.com/azzelll/SRASTA-WiFi-CSI.git
+git clone --branch main https://github.com/azzelll/SRASTA-WiFi-CSI.git
 cd SRASTA-WiFi-CSI
 git branch --show-current
 git log -1 --oneline
 ```
 
-`main` dan `agent/rebuild-be-ai-milestone` berisi checkpoint lama. Remote
-September memakai implementasi Windows/hotspot yang berbeda. Cabang handoff
-ini menerbitkan checkout Mac/Pi terbaru tanpa menimpa cabang September.
+`main` memuat handoff `394e6a3`, panel Pi `d24b3e4` dan merge `83bb1b7`.
+`handoff/2026-10-21` menyimpan checkpoint sebelum panel digabung.
+`agent/rebuild-be-ai-milestone` memakai implementasi Windows/hotspot September
+yang berbeda. Integrasi ke main tidak menimpa cabang September.
 Jangan menggabungkan runtime atau firmware dari kedua checkpoint tanpa audit.
 
 Urutan baca: `AGENTS.md` → `AI_CONTEXT.md` → dokumen ini →
@@ -51,6 +54,7 @@ bisa diakses, catat kendala akses; jangan mengarang isinya atau memangkas fitur.
 | Breathing condition | Kandidat riset `empty/sleep/normal` dan `empty/sleep` | `normal` tiga kelas masih proxy HAR; tidur alami vs terjaga lokal belum dilatih/divalidasi |
 | Motion/inactivity | Energi gerak + timer state tersedia | Kalibrasi lokal dan evaluasi anotasi; bukan classifier medis tervalidasi |
 | Kamera | Burst/skeleton dipasang di Pi 22 Oktober; uji sensor asli tiga frame dan pose 17 titik lolos | Postur uji masih uncertain; akurasi posture dan trigger CSI asli belum diukur |
+| Panel lokal | OLED, LED dan piezo sebagai service terpisah; self-test dan hasil pemasangan dicatat 23 Oktober | Skor panel bukan konfirmasi jatuh; reboot fisik dan stabilitas panjang belum diuji |
 | Caregiver | React/TypeScript UI sesuai arah Figma, event history, skeleton, ACK/bantuan, offline/stale state | Penerimaan caregiver nyata, push HP dan jalur kamera Pi terbaru → cloud → HP |
 | Cloud/Blynk | Adapter, SQL/RLS, edge-sync, idempotensi/command receipt dan tes tersedia | Kredensial harus diberikan privat; software test bukan bukti semua pengiriman nyata berhasil |
 | Recorder | Satu CLI: kosong → normal → diam; simpan raw + anotasi + prediksi + QA | Belum ada CLI terpandu tidur alami, jatuh, atau sesi ADL panjang dengan anotasi lengkap |

@@ -6,9 +6,17 @@
 dan urutan pekerjaan. [Panduan pengambilan data](docs/CAPTURE_QUICKSTART.md)
 menjelaskan port, instruksi CLI, file hasil, QA dan review.
 [Prompt AI penerus](docs/AI_CONTINUATION_PROMPT.md) bisa langsung disalin.
-Snapshot terbaru ada di branch **`handoff/2026-10-21`**; branch September dan
-`main` adalah checkpoint lama. Model demo terpilih dan indeks split ikut Git;
+Snapshot terbaru ada di branch **`main`**, termasuk handoff 21 Oktober dan
+panel lokal Pi dari [PR #2](https://github.com/azzelll/SRASTA-WiFi-CSI/pull/2).
+Branch September adalah checkpoint lama. Model demo terpilih dan indeks split ikut Git;
 rekaman CSI mentah dan kredensial tetap lokal.
+[Bukti integrasi dan pemeriksaan software](docs/evidence/20261023-main-integration.md).
+
+Panel OLED/LED/piezo membaca skor lokal: >=85% merah, 75–<85% kuning,
+<75% hijau; sumber offline/stale tidak ditampilkan hijau. Tersedia service
+dan self-test perangkat terisolasi. [Panduan panel](docs/PI_DEVICE_PANEL.md)
+dan [bukti pemasangan](docs/evidence/20261023-device-panel.md) membedakan
+CSI live pada pemasangan awal dari pemeriksaan berikutnya yang offline.
 
 Dashboard caregiver mendukung akses langsung tanpa login, termasuk Akui dan
 Minta bantuan, melalui mode `public` dan perangkat yang diaktifkan admin.

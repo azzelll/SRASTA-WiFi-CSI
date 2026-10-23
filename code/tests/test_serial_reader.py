@@ -7,6 +7,7 @@ import pty
 import threading
 import termios
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from srasta_csi.serial_reader import SerialJSONLReader, configure_serial
@@ -62,14 +63,37 @@ class SerialConfigurationTests(unittest.TestCase):
         def set_raw(fd, when=termios.TCSAFLUSH):
             set_attrs(fd, when, attrs.copy())
 
+        # Linux exports B1000000; Darwin does not. Patching sys.platform alone
+        # still reads the Linux constant and fails to exercise IOSSIOSPEED.
+        darwin_termios = SimpleNamespace(
+            B115200=termios.B115200,
+            TCSANOW=termios.TCSANOW,
+            tcgetattr=lambda fd: attrs.copy(),
+            tcsetattr=set_attrs,
+        )
         with patch("srasta_csi.serial_reader.sys.platform", "darwin"), patch(
-            "srasta_csi.serial_reader.termios.tcgetattr", side_effect=lambda fd: attrs.copy()
-        ), patch("srasta_csi.serial_reader.termios.tcsetattr", side_effect=set_attrs), patch(
+            "srasta_csi.serial_reader.termios", darwin_termios
+        ), patch(
             "srasta_csi.serial_reader.tty.setraw", side_effect=set_raw
         ), patch("srasta_csi.serial_reader.fcntl.ioctl") as ioctl:
             configure_serial(42, 1000000)
         self.assertEqual(attrs[4:6], [termios.B115200, termios.B115200])
         self.assertEqual(ioctl.call_args.args[2][0], 1000000)
+
+    def test_linux_uses_native_megabaud_without_macos_ioctl(self):
+        master, slave = pty.openpty()
+        try:
+            # PTY exercises the real Linux termios configuration, not a USB RX.
+            if not hasattr(termios, "B1000000"):
+                self.skipTest("Host termios has no native B1000000 constant")
+            with patch("srasta_csi.serial_reader.fcntl.ioctl") as ioctl:
+                configure_serial(slave, 1000000)
+            attrs = termios.tcgetattr(slave)
+            self.assertEqual(attrs[4:6], [termios.B1000000, termios.B1000000])
+            ioctl.assert_not_called()
+        finally:
+            os.close(master)
+            os.close(slave)
 
     def test_configuration_error_retries_instead_of_killing_reader(self):
         with tempfile.NamedTemporaryFile() as port:

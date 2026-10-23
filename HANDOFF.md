@@ -13,6 +13,13 @@ Supabase dan Vercel sudah diterapkan; browser produksi tanpa sesi membuka
 Beranda dan menerima ringkasan CSI fresh pada 23 Oktober sekitar 00:31 WIB.
 Ini tidak membuktikan akurasi deteksi atau tindakan/push pada HP/Pi fisik.
 
+Tambahan 23 Oktober: [panel OLED/LED/piezo lokal](docs/PI_DEVICE_PANEL.md)
+terpasang sebagai service terpisah dengan ambang skor >=85% merah,
+75–<85% kuning, <75% hijau (diperbarui atas permintaan pemilik).
+CSI live terhubung pada pemeriksaan pemasangan awal;
+lihat [bukti panel](docs/evidence/20261023-device-panel.md).
+Ini bukan hasil validasi akurasi atau perubahan state machine/model.
+
 ## 1. Ambil versi yang benar
 
 ```bash
@@ -146,6 +153,11 @@ Dependency pin adalah versi environment yang diketahui; pemasangan dari nol
 pada semua OS belum dibuktikan. Untuk Pi ARM64/Python 3.13 gunakan
 [`RASPBERRY_PI_SETUP.md`](RASPBERRY_PI_SETUP.md) dan installer paket, bukan
 TensorFlow development Mac. Jangan menyalin `.venv` antararsitektur.
+
+Untuk reproduksi seluruh tes dari source pada Pi, gunakan venv development
+baru dengan `code/requirements-pi-dev.txt`; jangan meng-upgrade venv release
+yang dipakai bersama. Lihat [setup development Pi](docs/PI_DEVELOPMENT_SETUP.md)
+dan [bukti reproduksi ARM64](docs/evidence/20261022-pi-software-reproduction.md).
 
 Cloud opsional; local mode tidak memerlukan akun cloud. Placeholder ada pada
 `.env.example` dan `web/.env.example`. Ikuti [`CLOUD_SETUP.md`](CLOUD_SETUP.md)

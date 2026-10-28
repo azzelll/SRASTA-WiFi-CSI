@@ -18,6 +18,7 @@ import uuid
 
 from .contract import CaptureProfile, FrameValidator
 from .decoder import USABLE_SUBCARRIER_INDICES
+from .capture_governance import data_use_approval
 
 CLASS_LABELS = ("no_person", "normal", "inactive", "fall_anomaly")
 EVENT_CLASSES = {"no_person": "no_person", "nonfall_activity": "normal", "inactivity_without_fall": "inactive", "fall": "fall_anomaly"}
@@ -183,17 +184,20 @@ class CaptureArchive:
         with self.lock:
             return {**self.validator.stats(), "duplicate_sequences": self.duplicate_sequences, "timestamp_reversals": self.timestamp_reversals, "clock_us": self.last_frame.local_timestamp_us if self.last_frame else None, "age_s": time.monotonic() - self.last_frame_host_s if self.last_frame_host_s is not None else None, "predictions": self.prediction_count, "failed": self.failure}
 
-    def annotate(self, event_type, start_us, end_us, *, observer_id, confirmed, notes="", **extra):
+    def annotate(self, event_type, start_us, end_us, *, observer_id, confirmed, notes="",
+                 annotation_method="observer_confirmed_guided_interval", **extra):
         if event_type not in {*EVENT_CLASSES, "calibration", "interference", "recovery", "aborted_event"}:
             raise ValueError("unsupported observer event")
         if not isinstance(start_us, int) or not isinstance(end_us, int) or start_us >= end_us:
             raise ValueError("observer interval must have increasing receiver timestamps")
         if not re.fullmatch(r"ANN_[A-Z0-9_]{1,32}", observer_id):
             raise ValueError("observer must use an ANN_ code")
+        if annotation_method not in {"observer_confirmed_guided_interval", "observer_keyboard_receiver_clock"}:
+            raise ValueError("unsupported annotation method")
         allowed_extra = {"stationary_since_monotonic_us", "post_event_inactivity_start_monotonic_us", "post_event_inactivity_end_monotonic_us", "planned_activity"}
         if set(extra) - allowed_extra:
             raise ValueError("unsupported annotation metadata")
-        event = {"schema_version": "srasta.csi.event.v1", "record_type": "event", "event_id": "EVT_" + uuid.uuid4().hex.upper(), "session_id": self.config["session_id"], "subject_id": self.config["subject_id"], "event_type": event_type if confirmed else "aborted_event", "activity_label": EVENT_CLASSES.get(event_type, event_type) if confirmed else "invalid_condition", "onset_monotonic_us": start_us, "event_end_monotonic_us": end_us, "annotation_method": "observer_confirmed_guided_interval", "annotator_ids": [observer_id], "review_status": "pending", "confirmed_by_observer": bool(confirmed), "annotated_at_utc": utc_now(), "notes": notes[:240], **extra}
+        event = {"schema_version": "srasta.csi.event.v1", "record_type": "event", "event_id": "EVT_" + uuid.uuid4().hex.upper(), "session_id": self.config["session_id"], "subject_id": self.config["subject_id"], "event_type": event_type if confirmed else "aborted_event", "activity_label": EVENT_CLASSES.get(event_type, event_type) if confirmed else "invalid_condition", "onset_monotonic_us": start_us, "event_end_monotonic_us": end_us, "annotation_method": annotation_method, "annotator_ids": [observer_id], "review_status": "pending", "confirmed_by_observer": bool(confirmed), "annotated_at_utc": utc_now(), "notes": notes[:240], **extra}
         with self.lock:
             self._append("events.jsonl", event)
         return event
@@ -342,6 +346,10 @@ def qa_capture(path):
             a,b = e.get("post_event_inactivity_start_monotonic_us"),e.get("post_event_inactivity_end_monotonic_us")
             if not isinstance(a,int) or not isinstance(b,int) or not end <= a < b <= last:
                 issues.append("fall lacks verified post-event inactivity bounds")
+            else:
+                # Post-fall stillness belongs to the fall, never to negative
+                # exposure or a contradictory activity in the same archive.
+                previous_end = b
         if e["event_type"] == "inactivity_without_fall" and start-e.get("stationary_since_monotonic_us",start) < config["inactivity_min_s"]*1e6:
             issues.append("inactive interval lacks the minimum prior stationary period")
         if e["review_status"] == "rejected":
@@ -351,6 +359,12 @@ def qa_capture(path):
     classified_events = [e for e in events if e["event_type"] in EVENT_CLASSES]
     minimum_duration_ok = reviewed_duration >= config["acceptance"]["minimum_nonfall_observation_s"] or any(e["event_type"] == "fall" and e["review_status"] == "reconciled" for e in events)
     firmware_pending = config.get("firmware_verification") == "not_verified_against_board"
-    pending = pending or not classified_events or not minimum_duration_ok or not config.get("authority_ref") or not config.get("independent_local_cohort_attested") or firmware_pending
+    approval = None
+    try:
+        approval = data_use_approval(path)
+    except (ValueError, KeyError, TypeError) as exc:
+        issues.append("invalid data-use approval: " + str(exc))
+    provenance_ok = bool(config.get("authority_ref") or approval) and bool(config.get("independent_local_cohort_attested"))
+    pending = pending or not classified_events or not minimum_duration_ok or not provenance_ok or firmware_pending
     status = "rejected" if issues else "pending" if pending else "accepted"
-    return {"session_id":config["session_id"],"subject_id":config["subject_id"],"split":config["split"],"capture_config_sha256":declared,"status":status,"issues":sorted(set(issues)),"frame_count":frame_count,"quarantined_frames":quarantine,"packet_loss_rate":loss,"observed_duration_s":(last-first)/1e6 if first is not None and last is not None else 0,"reviewed_nonfall_duration_s":reviewed_duration,"class_counts":{label:sum(e["event_type"] in EVENT_CLASSES and EVENT_CLASSES[e["event_type"]]==label and e["review_status"]=="reconciled" for e in events) for label in CLASS_LABELS},"gap_intervals_us":gaps,"prediction_count":prediction_count,"labels_ready_for_training":status=="accepted" and config["split"] != "pilot","pending_reasons":(["independent observer review is required"] if any(e["review_status"]=="pending" for e in classified_events) else []) + (["authority reference / independent cohort provenance missing"] if not config.get("authority_ref") or not config.get("independent_local_cohort_attested") else []) + (["no eligible reviewed labelled intervals"] if not minimum_duration_ok or not classified_events else []) + (["firmware identity not attested against local build"] if firmware_pending else [])}
+    return {"session_id":config["session_id"],"subject_id":config["subject_id"],"split":config["split"],"capture_config_sha256":declared,"status":status,"issues":sorted(set(issues)),"frame_count":frame_count,"quarantined_frames":quarantine,"packet_loss_rate":loss,"observed_duration_s":(last-first)/1e6 if first is not None and last is not None else 0,"reviewed_nonfall_duration_s":reviewed_duration,"class_counts":{label:sum(e["event_type"] in EVENT_CLASSES and EVENT_CLASSES[e["event_type"]]==label and e["review_status"]=="reconciled" for e in events) for label in CLASS_LABELS},"gap_intervals_us":gaps,"prediction_count":prediction_count,"labels_ready_for_training":status=="accepted" and config["split"] != "pilot","data_use_approval":approval,"pending_reasons":(["independent observer review is required"] if any(e["review_status"]=="pending" for e in classified_events) else []) + (["authority reference / independent cohort provenance missing"] if not provenance_ok else []) + (["no eligible reviewed labelled intervals"] if not minimum_duration_ok or not classified_events else []) + (["firmware identity not attested against local build"] if firmware_pending else [])}

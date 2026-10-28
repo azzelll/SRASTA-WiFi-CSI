@@ -1,5 +1,43 @@
 # SRASTA AI and Edge Backend Context
 
+## Local dataset and first local fit, 26 October 2026
+
+The owner reports team approval to use the eight empty and five presence
+archives for local model development now. A separate hash-bound data-use
+decision records that statement; it does not backdate capture-time approval.
+The reviewed cohort now has 25 accepted sessions (12 fall, 5 presence, 8 empty).
+Confirmed A/B/C participant sidecars are consumed before window grouping;
+stored LOC_001 identities and original splits/raw/events remain unchanged.
+
+First bounded experiment: frozen v8 encoder, Dense head fine-tuning, three
+person-disjoint fit/calibration/evaluation folds, seeds 42/43/44. On 121 person
+windows, v8 INT8 recall/specificity is 0%/100%; candidate mean OOF is
+36.1%/71.6%. This trades specificity away and is **not promoted**. Export INT8
+parity passed; that is not independent accuracy evidence. Recorded v8 event
+evaluation detects 0/7 eligible falls (5 excluded by coverage/truth), with
+10 false-alert episodes in 6.496 eligible nonfall hours. All are train/dev.
+D is ready to be recorded, not yet captured; no validation or test payload was
+opened. E testing awaits a frozen decision after D. Demo v8 remains unchanged.
+See [local development](docs/LOCAL_CAPTURE_DEVELOPMENT.md); private run and
+approval artifacts remain outside Git under SRASTA_LOCAL_CAPTURE.
+
+## Fall engineering, 23 October 2026
+
+Owner priority is fall → local dataset → presence → validation → user
+experience; resilience acceptance is reported passed by the owner. Fresh
+v8 diagnostics reproduce U19 recall 62.5% / specificity 64.9%. A preregistered
+36-fit subject-grouped filtered-vs-raw Hampel TCN32 ablation rejected raw
+(54.9%/50.6%) against its grouped baseline (56.9%/51.4%). These are development
+results, not an improvement claim or independent test. V8 remains the demo.
+
+ADL/motion and observer four-boundary fall recorder modes, post-fall overlap
+QA, event recall/latency evaluation and test-excluding local readiness tooling
+are implemented. Fresh backend: 140 tests, 139 pass, one Linux-only skip on Mac;
+32 handoff assets verified. No production deployment or physical capture was
+performed here. Local train/validation have zero accepted windows; human
+capture/review is the next boundary. See `docs/FALL_ENGINEERING_HANDOFF.md`
+and `docs/evidence/20261023-fall-engineering.md` before new experiments.
+
 ## Public caregiver access, 23 October 2026
 
 The owner requested direct Vercel dashboard access without login, including

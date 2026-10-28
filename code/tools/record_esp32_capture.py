@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-command guided, continuous, local CSI recording; no staged falls."""
+"""Guided local CSI capture; fall mode records an observer's four boundaries."""
 from __future__ import annotations
 
 import argparse
@@ -153,7 +153,12 @@ class GuidedRecorder:
             "nominal_sender_rate_hz": 50.0, "serial_port": self.port, "serial_baud": self.args.baud,
             "model_sha256": digest(self.args.model), "model_release": self.args.model.parent.parent.name,
             "preprocess_config_sha256": digest(self.args.model.parent / "preprocess_config.json"),
-            "prediction_interval_s": .2, "planned_conditions": [] if self.args.pilot_only else ["no_person", "normal", "inactive"],
+            "prediction_interval_s": .2, "guided_protocol": self.args.protocol,
+            "planned_conditions": [] if self.args.pilot_only else {
+                "basic": ["no_person", "normal", "inactive"], "empty": ["no_person"],
+                "presence": ["normal"], "adl": ["normal"],
+                "motion": ["normal", "inactive", "normal"], "fall-observer": ["fall_anomaly"],
+            }[self.args.protocol],
             "condition_duration_s": self.args.duration, "created_at_utc": datetime.now(timezone.utc).isoformat(),
         }
         with self.stage_lock:
@@ -218,14 +223,58 @@ class GuidedRecorder:
         print(f"Tersimpan: {event['activity_label']} ({(end-start)/1e6:.1f} detik), review pending.")
 
     def run(self):
+        if not self.args.pilot_only and self.args.protocol == "fall-observer":
+            if not self.meta.get("authority_ref"):
+                raise ValueError("Mode fall memerlukan referensi prosedur yang benar-benar disetujui; jangan mengarang kode.")
+            print("Mode ini hanya mencatat batas kejadian oleh pengamat. Pelaksanaan memakai prosedur tim: dewasa terlatih, pengawasan, dan sarana sesuai; bukan lansia atau orang tanpa pelatihan.")
+            if not confirmed("Prosedur, pelaksana terlatih, pengawas dan sarana tersebut sudah siap?"):
+                raise ValueError("Prasyarat sesi fall belum terpenuhi.")
         self.start()
         if self.args.pilot_only:
             self.timed(self.args.pilot_seconds, "PILOT koneksi — tanpa label aktivitas")
+            return
+        if self.args.protocol == "fall-observer":
+            self.observed_fall()
+            return
+        if self.args.protocol == "empty":
+            self.condition("RUANGAN KOSONG", "Setelah Enter, semua orang keluar dari ruangan selama persiapan. Biarkan TX/RX tetap di tempat dan ruangan kosong sepanjang REKAM. Tunggu bunyi akhir sebelum kembali.", "no_person")
+            return
+        if self.args.protocol == "presence":
+            self.condition("PRESENCE — ADA ORANG", "Satu orang yang sama tetap berada di ruangan sepanjang REKAM. Boleh beraktivitas biasa, duduk atau berbaring nyaman sambil tetap terjaga; tidak perlu terus bergerak. Jangan keluar, berganti peserta atau mengubah posisi TX/RX. Interval ini hanya menyatakan ada orang tanpa jatuh, bukan label gerak/inaktif/tidur yang terpisah.", "nonfall_activity")
+            return
+        if self.args.protocol == "adl":
+            self.condition("ADL — AKTIVITAS HARIAN NONFALL", "Satu orang menjalani aktivitas harian biasa sesuai rencana sesi, tanpa jatuh. Pengamat menyaksikan seluruh interval. Durasi panjang dipilih dengan --duration; jangan mengubah label berdasarkan prediksi.", "nonfall_activity")
+            return
+        if self.args.protocol == "motion":
+            self.condition("1/3 — BERGERAK", "Aktivitas harian biasa sesuai rencana sesi, tanpa jatuh.", "nonfall_activity")
+            self.condition("2/3 — DIAM / INAKTIF", "Duduk/berbaring nyaman, bernapas normal. Jangan beri label sleep hanya karena diam.", "inactivity_without_fall", stationary=True)
+            self.condition("3/3 — AKTIVITAS KEMBALI", "Kembali beraktivitas biasa. Pengamat mencatat transisi; waktu persiapan tidak diberi label.", "nonfall_activity")
             return
         self.condition("1/3 — RUANGAN KOSONG", "Setelah Enter, Anda punya waktu persiapan untuk keluar. Semua orang harus keluar dari ruangan yang dipantau. Biarkan TX/RX tetap di tempat. Tunggu bunyi akhir sebelum kembali.", "no_person")
         self.condition("2/3 — AKTIVITAS NORMAL", "Satu orang di ruangan. Berjalan dengan kecepatan biasa, berbalik, duduk lalu berdiri, mengambil barang ringan bila nyaman. Lakukan seperti aktivitas sehari-hari.", "nonfall_activity")
         self.condition("3/3 — DIAM / INAKTIF", "Duduk atau berbaring dengan nyaman. Setelah Enter, tetap pada posisi itu selama persiapan dan REKAM. Bernapas seperti biasa. Gerakan kecil alami boleh; jangan berjalan atau berganti posisi besar.", "inactivity_without_fall", stationary=True)
         print("\nTiga kondisi selesai. Kelas jatuh belum dikumpulkan; perlu sesi terpisah sesuai protokol dan pengamat.")
+
+    def observed_fall(self):
+        print("Pengamat menekan Enter pada EMPAT batas aktual, tanpa melihat prediksi. Clock yang disimpan berasal dari RX, bukan jam laptop. Ketepatan penekanan tombol terbatas reaksi manusia; ini bukan referensi onset presisi.")
+        self.timed(self.args.prepare, "Persiapan pengamat; belum diberi label")
+        marks = []
+        for title in ("ONSET kejadian", "AKHIR kejadian fall", "MULAI diam pascakejadian", "AKHIR diam pascakejadian"):
+            input(f"Enter tepat saat {title}: ")
+            marks.append(self.archive.clock())
+            if len(marks) == 1:
+                self.interval = (marks[0], "fall")
+        onset, end, stationary_start, stationary_end = marks
+        if not onset < end <= stationary_start < stationary_end:
+            raise ValueError("Empat batas clock RX tidak urut; sesi dipertahankan sebagai incomplete, bukan diperbaiki.")
+        valid = confirmed("Keempat batas dan kondisi sesuai dengan yang Anda saksikan?")
+        self.archive.annotate("fall", onset, end, observer_id=self.meta["observer_id"], confirmed=valid,
+                              annotation_method="observer_keyboard_receiver_clock",
+                              post_event_inactivity_start_monotonic_us=stationary_start,
+                              post_event_inactivity_end_monotonic_us=stationary_end,
+                              notes="Four observer keyboard marks on RX clock; human reaction uncertainty; no model-derived onset")
+        self.interval = None
+        print("Empat batas tersimpan; menunggu review independen. Empat tanda ini tidak melabeli recovery sebagai diam pascakejadian.")
 
     def finish(self, completed):
         self.reader.close()
@@ -267,6 +316,8 @@ def main(argv=None):
     parser.add_argument("--baud", type=int, default=1000000)
     parser.add_argument("--duration", type=int, default=180, help="Detik per kondisi (minimum 60, default 180)")
     parser.add_argument("--prepare", type=int, default=20, help="Waktu keluar ruangan/bersiap (minimum 10)")
+    parser.add_argument("--protocol", choices=("basic", "empty", "presence", "adl", "motion", "fall-observer"), default="basic",
+                        help="basic=3 kondisi; empty=kosong saja; presence=ada orang saja; adl=nonfall panjang; motion=gerak-diam-gerak; fall-observer=4 tanda waktu oleh pengamat")
     parser.add_argument("--pilot-only", action="store_true", help="Uji koneksi saja; tanpa instruksi kondisi atau label training")
     parser.add_argument("--pilot-seconds", type=int, default=10)
     args = parser.parse_args(argv)
@@ -281,7 +332,7 @@ def main(argv=None):
     if args.pilot_only:
         print(f"Pilot koneksi {args.pilot_seconds} detik, tanpa label aktivitas.")
     else:
-        print(f"Durasi kondisi: {args.duration}s × 3 + persiapan; sekitar {(args.duration*3+args.prepare*2+61)/60:.0f} menit, di luar waktu menjawab.")
+        print(f"Protokol: {args.protocol}; durasi kondisi berwaktu: {args.duration}s. Fall-observer memakai tanda waktu pengamat.")
     recorder = None
     completed = False
     report = None

@@ -14,18 +14,6 @@ from srasta_csi.pose import validate_pose
 
 
 class CameraTests(unittest.TestCase):
-    def test_letterbox_preserves_full_view_and_rgb_channel_order(self):
-        from srasta_csi.camera_capture import movenet_image
-        rgb = np.zeros((480, 640, 3), dtype=np.uint8)
-        rgb[:, :, 0] = 255
-        image = np.asarray(movenet_image(rgb))
-        self.assertEqual(image.shape, (192, 192, 3))
-        self.assertEqual(image[0].max(), 0)
-        self.assertEqual(image[23].max(), 0)
-        np.testing.assert_array_equal(image[24, 0], [255, 0, 0])
-        np.testing.assert_array_equal(image[167, -1], [255, 0, 0])
-        self.assertEqual(image[168].max(), 0)
-
     def test_degenerate_torso_does_not_count_as_upright(self):
         self.assertEqual(posture_from_keypoints(np.tile([.5, .5, .9], (17, 1))),
                          "Keypoint tubuh kurang andal")

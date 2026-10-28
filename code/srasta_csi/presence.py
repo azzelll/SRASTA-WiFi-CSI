@@ -9,6 +9,7 @@ import joblib
 import numpy as np
 
 from .capture_archive import iter_jsonl, qa_capture, reviewed_events
+from .capture_governance import participant_identity
 from .decoder import decode_iq_to_amplitude
 from .native_features import FEATURE_NAMES, native_motion_features
 
@@ -57,6 +58,7 @@ def collect_presence_windows(root: Path):
         if not qa["labels_ready_for_training"]:
             rejected.append({"session_id": config["session_id"], "qa_status": qa["status"], "reasons": qa["pending_reasons"] + qa["issues"]})
             continue
+        participant = participant_identity(session, config)
         events = [e for e in reviewed_events(session, config) if e["review_status"] == "reconciled" and e["event_type"] in {"no_person", "nonfall_activity", "inactivity_without_fall"}]
         ordered = sorted(events, key=lambda e: e["onset_monotonic_us"])
         if any(a["event_end_monotonic_us"] > b["onset_monotonic_us"] for a, b in zip(ordered, ordered[1:])):
@@ -81,6 +83,6 @@ def collect_presence_windows(root: Path):
             while buffer and stamp - buffer[0][0] > 11.:
                 buffer.popleft()
             if stamp - buffer[0][0] >= 10. and (last_window is None or stamp - last_window >= 10.):
-                rows.append({"features": presence_features(np.stack([r[1] for r in buffer]), np.asarray([r[0] for r in buffer])), "label": int(event["event_type"] != "no_person"), "subject_id": config["subject_id"], "split": config["split"], "session_id": config["session_id"], "capture_profile_hash": config["capture_profile"]["hash"]})
+                rows.append({"features": presence_features(np.stack([r[1] for r in buffer]), np.asarray([r[0] for r in buffer])), "label": int(event["event_type"] != "no_person"), "subject_id": participant["subject_id"], "original_subject_id": config["subject_id"], "split": config["split"], "session_id": config["session_id"], "capture_profile_hash": config["capture_profile"]["hash"]})
                 last_window = stamp
     return rows, rejected

@@ -41,10 +41,10 @@ Angka 11/13/15 dari pemilik adalah **nomor fisik header**, bukan BCM.
 
 | Komponen | Sinyal | Pin fisik | BCM |
 | --- | --- | --- | --- |
-| LED merah | Anoda lewat resistor 330 ohm | 11 | 17 |
-| LED kuning | Anoda lewat resistor 330 ohm | 13 | 27 |
-| LED hijau | Anoda lewat resistor 330 ohm | 15 | 22 |
-| Piezo pasif | Positif lewat resistor 330 ohm | 12 | 18 |
+| LED merah | Anoda lewat resistor 330 ohm | 13 | 27 |
+| LED kuning | Anoda lewat resistor 330 ohm | 15 | 22 |
+| LED hijau | Anoda lewat resistor 330 ohm | 11 | 17 |
+| Piezo pasif | Positif lewat resistor 330 ohm | 36 | 16 |
 | OLED SSD1306 SPI 128x64 | VCC 3,3 V | 1 | — |
 | OLED | GND | 6 | — |
 | OLED | D0/CLK/SCL | 23 | 11 |
@@ -53,10 +53,17 @@ Angka 11/13/15 dari pemilik adalah **nomor fisik header**, bukan BCM.
 | OLED | DC | 18 | 24 |
 | OLED | CS/CE0 | 24 | 8 |
 
+Mapping LED dikoreksi dari warna fisik yang dilaporkan pemilik pada self-test
+26 Oktober 2026: merah **BCM27**, hijau **BCM17**, dan kuning **BCM22**.
+Pada konfigurasi sebelumnya, tahap kuning menyalakan merah, tahap merah
+menyalakan hijau, dan tahap hijau menyalakan kuning. Panel dan tes memakai
+mapping hasil pengamatan tersebut.
+
 Katoda semua LED dan negatif piezo ke rail GND bersama yang tersambung pin 6.
-Setiap LED memakai resistor sendiri. Konfigurasi mempertahankan wiring awal
-piezo pasif kecil yang sesuai GPIO 3,3 V, tanpa transistor. Pemilik menyatakan
-memakai wiring sebelumnya; jenis/arus komponen belum diperiksa langsung.
+Setiap LED memakai resistor sendiri. Pada 26 Oktober 2026, pemilik memindahkan
+piezo ke **BCM16 / pin fisik 36**; konfigurasi panel dan self-test mengikuti pin
+tersebut. Konfigurasi memakai piezo pasif kecil yang sesuai GPIO 3,3 V, tanpa
+transistor; jenis/arus komponen belum diperiksa langsung.
 Jika buzzer ternyata aktif/magnetik atau bebannya tidak sesuai GPIO, hentikan
 panel dan gunakan driver yang sesuai. Jangan menyambungkan 5 V ke GPIO.
 

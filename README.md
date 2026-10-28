@@ -12,6 +12,11 @@ Branch September adalah checkpoint lama. Model demo terpilih dan indeks split ik
 rekaman CSI mentah dan kredensial tetap lokal.
 [Bukti integrasi dan pemeriksaan software](docs/evidence/20261023-main-integration.md).
 
+Engineering fall terbaru: diagnosis 365 rekaman, 36 fitting antarorang dan
+recorder ADL/motion/four-boundary fall. Kandidat baru ditolak; v8 tetap demo.
+[Hasil dan giliran pengambilan data](docs/FALL_ENGINEERING_HANDOFF.md) ·
+[bukti pengujian](docs/evidence/20261023-fall-engineering.md).
+
 Panel OLED/LED/piezo membaca skor lokal: >=85% merah, 75–<85% kuning,
 <75% hijau; sumber offline/stale tidak ditampilkan hijau. Tersedia service
 dan self-test perangkat terisolasi. [Panduan panel](docs/PI_DEVICE_PANEL.md)

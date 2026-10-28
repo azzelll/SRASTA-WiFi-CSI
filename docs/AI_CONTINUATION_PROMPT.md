@@ -28,8 +28,14 @@ State penting:
 - Software firmware TX/RX, backend/AI, recorder, caregiver React/Vite, Supabase,
   Blynk dan camera burst/skeleton sudah tersedia. Bukan seluruh produk tervalidasi.
 - Fall demo terpilih v8: artifacts/releases/20261001-tcn-v8-motion-calibrated/selected.
-  Validation proxy recall 62,5%, specificity 64,9%; belum target minimal 80%/80%.
+  Validation proxy recall 62,5%, specificity 64,9%; target proposal 88%/80% belum tercapai.
   Jangan gunakan model lama code/runs/srasta_fall (invalid satu kelas).
+- Engineering fall 23 Oktober: diagnosis 365 rekaman dan 36 fitting grouped
+  selesai. TCN32 Hampel raw ditolak (54,9%/50,6%) vs grouped filtered baseline
+  (56,9%/51,4%). Jangan ulang grid yang sama atau membuka U21 untuk tuning.
+  Baca docs/FALL_ENGINEERING_HANDOFF.md dan evidence/20261023-fall-engineering.md.
+  V8 tetap demo; tidak ada klaim akurasi meningkat. Ketahanan dinyatakan pass
+  oleh pemilik; jangan menjadwalkan ulang seluruh suite ketahanan.
 - Presence/breathing publik adalah kandidat riset domain berbeda; jangan
   mengaktifkannya pada stream 52 fitur atau memaksakan shape dengan resize/pad.
 - Lima fitur harus dipertahankan: fall, breathing diskret sleep/normal/empty,
@@ -69,19 +75,24 @@ ke luar Git. Isian orang harus LOC_001, split tetap; kode izin jika belum ada
 dikosongkan (pending). RX UART/COM hanya satu reader; stop systemd Pi dahulu.
 Pilot 15 detik sebelum sesi normal kosong/normal/diam 180 detik per kondisi.
 QA dan independent observer review diperlukan; prediksi bukan ground truth.
-CLI belum memandu sleep/fall/ADL panjang: lengkapi protokol/anotasi/tests dulu.
+CLI sekarang punya --protocol basic|adl|motion|fall-observer. Default basic
+tetap tiga kondisi. Fall-observer perlu prosedur/observer nyata dan empat
+batas RX-clock; pengukuran keyboard punya ketidakpastian reaksi manusia.
+Mode sleep dengan referensi sinkron masih perlu engineering. Readiness lokal
+melewati payload test/pilot; tidak ada train/validation accepted sekarang.
 Jangan meminta orang jatuh tanpa prosedur terlatih dan aman yang disetujui.
 
-Prioritas selanjutnya: (1) reproduksi clone dan state, (2) pilot CSI aktual,
-(3) data nonfall accepted dari subjek terpisah, (4) recorder sleep/transisi/ADL
-dan protokol fall, (5) training/kalibrasi train-validation dengan domain benar,
-(6) frozen independent evaluation dan FAR/exposure, (7) lanjutkan acceptance
-release Pi terpasang: CSI -> event -> kamera -> skeleton caregiver dan push HP,
-kemudian reboot/reconnect. Gunakan backup sebelum upgrade berikutnya.
+Prioritas pemilik: (1) perbaiki fall, (2) dataset lokal, (3) presence,
+(4) validasi, (5) uji pengalaman. Setelah eksperimen offline ditolak, batas
+berikutnya adalah capture/review lokal. Pilot lalu basic/nonfall/ADL pada
+orang dengan split tetap, fall berprosedur terawasi, kemudian kalibrasi/fine-tune
+dan evaluasi beku. Ketahanan sudah pass menurut pemilik. Jalur kejadian nyata
+CSI -> kamera -> skeleton caregiver dan push HP tetap perlu bukti tersendiri.
+Gunakan backup sebelum upgrade berikutnya.
 
 Kerjakan bagian yang bisa dilakukan tanpa hardware; tanyakan informasi yang
 benar-benar hilang sambil melanjutkan pekerjaan independen. Jangan mengklaim
-80% atau selesai dari unit test, demo, replay atau satu gambar kamera.
+target akurasi atau selesai dari unit test, demo, replay atau satu gambar kamera.
 Setiap checkpoint: tulis perubahan, command verifikasi, hasil, gap dan langkah
 berikutnya pada docs/evidence. Jangan commit secret, raw, DB atau output run baru
 tanpa otorisasi pemilik. Handoff ini mengizinkan selected snapshots yang telah

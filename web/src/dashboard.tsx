@@ -3,6 +3,8 @@ import { WifiOff } from "lucide-react";
 import type { CareEvent, Snapshot, SystemState } from "./types";
 import { cameraNote, eventSource, eventState, isAlert, states } from "./status";
 import { PoseSkeleton, poseTitle } from "./camera-pose";
+import { isPiKeyboardDemo } from "./keyboard-demo-state";
+import { PiVideoCameraPanel } from "./keyboard-demo-camera";
 
 export const figmaAsset = (file: string) => `/figma/${file}`;
 
@@ -29,28 +31,32 @@ export function duration(seconds: number | null | undefined) {
   return [Math.floor(total / 3600), Math.floor(total / 60) % 60, total % 60].map(n => String(n).padStart(2, "0")).join(":");
 }
 
-export function StatusCard({ snapshot, active, name, room }: { snapshot: Snapshot | null; active: boolean; name: string; room: string }) {
+export function StatusCard({ snapshot, active, name, room, manualDemo = false }: { snapshot: Snapshot | null; active: boolean; name: string; room: string; manualDemo?: boolean }) {
+  const piDemo = isPiKeyboardDemo(snapshot);
+  manualDemo = manualDemo || piDemo;
   const state = snapshot?.state || "standby";
   const severity = active || state === "critical" || state === "anomaly" ? state : "unknown";
   const visual = visuals[severity === "unknown" ? "standby" : state];
   const latest = snapshot?.events?.filter(event => eventState(event.state) === state).sort((a, b) => b.timestamp_s - a.timestamp_s)[0];
   const confirmed = latest?.state === "confirmed_fall";
+  const demoTitle = state === "critical" ? "JATUH TERDETEKSI" : "IDLE";
   return (
     <section className={`card status-card ${severity}`} aria-label={`Kondisi ${name}, ${room}`}>
       <div className="state-aura"><img src={figmaAsset(visual.aura)} alt="" /><DesignIcon file={visual.icon} className="state-symbol" /></div>
       <div className="state-copy">
-        <h2 aria-label={active ? states[state].label : undefined}>{!snapshot ? "Menunggu data" : active ? visual.title : "Status terakhir: " + states[state].label}</h2>
-        <p className="state-description">{active ? confirmed ? "Indikasi jatuh terkonfirmasi" : visual.description : "Kondisi terkini belum dapat dipastikan."}</p>
-        <span className="system-state">System State: {snapshot ? state.toUpperCase() : "BELUM TERSEDIA"}</span>
-        <p className="state-explanation">{state === "critical" ? "Periksa peringatan dan catat tindak lanjut. Status pengiriman dapat dilihat melalui koneksi perangkat." : state === "anomaly" ? "Hasil CSI, durasi diam, dan validasi kamera diperiksa sebelum keputusan berikutnya." : "Sistem mempertimbangkan CSI, durasi inaktivitas, napas, dan validasi kamera."}</p>
+        <h2 aria-label={active ? manualDemo ? demoTitle : states[state].label : undefined}>{manualDemo ? active ? demoTitle : piDemo ? "KONEKSI TERPUTUS" : "DEMO TERPUTUS" : !snapshot ? "Menunggu data" : active ? visual.title : "Status terakhir: " + states[state].label}</h2>
+        <p className="state-description">{piDemo ? !active ? "Menunggu pembaruan dari perangkat" : state === "critical" ? "Segera periksa kondisi pengguna" : "Menunggu perubahan status" : manualDemo ? !active ? "Menunggu pembaruan dari Raspberry Pi" : state === "critical" ? "Simulasi jatuh dipicu manual" : "Menunggu tombol Space" : active ? confirmed ? "Indikasi jatuh terkonfirmasi" : visual.description : "Kondisi terkini belum dapat dipastikan."}</p>
+        <span className="system-state">System State: {manualDemo ? state === "critical" ? "FALL DETECTED" : "IDLE" : snapshot ? state.toUpperCase() : "BELUM TERSEDIA"}</span>
+        <p className="state-explanation">{piDemo ? !active ? "Kondisi terkini belum dapat dipastikan." : state === "critical" ? "Periksa kondisi pengguna dan berikan bantuan bila diperlukan." : "Status perangkat diperbarui secara otomatis." : manualDemo ? "Tekan Space untuk jatuh, R untuk kembali idle. Ini simulasi manual di browser." : state === "critical" ? "Periksa peringatan dan catat tindak lanjut. Status pengiriman dapat dilihat melalui koneksi perangkat." : state === "anomaly" ? "Hasil CSI, durasi diam, dan validasi kamera diperiksa sebelum keputusan berikutnya." : "Sistem mempertimbangkan CSI, durasi inaktivitas, napas, dan validasi kamera."}</p>
       </div>
       {state === "critical" && <DesignIcon file="bbc84.svg" className="critical-detail-icon" />}
-      {(snapshot?.source === "simulator" || snapshot?.source === "replay" || !active) && <span className="state-source">{snapshot?.source === "simulator" ? "Simulasi" : snapshot?.source === "replay" ? "Replay" : "Belum ada data terkini"}</span>}
+      {!piDemo && (snapshot?.source === "simulator" || snapshot?.source === "replay" || !active) && <span className="state-source">{snapshot?.source === "simulator" ? "Simulasi" : snapshot?.source === "replay" ? "Replay" : "Belum ada data terkini"}</span>}
     </section>
   );
 }
 
 export function CameraPanel({ snapshot, active }: { snapshot: Snapshot | null; active: boolean }) {
+  if (isPiKeyboardDemo(snapshot)) return <PiVideoCameraPanel active={active} fallen={snapshot?.state === "critical"} />;
   const camera = snapshot?.camera;
   const realCamera = snapshot?.source === "live" && !snapshot.simulation;
   const event = snapshot?.events?.filter(isAlert).sort((a, b) => b.timestamp_s - a.timestamp_s)[0];
@@ -101,12 +107,12 @@ export function MetricGrid({ snapshot, active, alerts }: { snapshot: Snapshot | 
   const condition = { sleep: "Pola tidur", normal: "Pola normal", empty: "Ruangan kosong" };
   const breathingNote = active && snapshot?.breathing_condition ? condition[snapshot.breathing_condition] : bpm != null ? `Kualitas: ${snapshot?.breathing_quality ?? 0}%` : "Belum tersedia";
   return (
-    <div className="metric-grid">
+    <div className={`metric-grid ${isPiKeyboardDemo(snapshot) ? "video-metrics" : ""}`}>
       <MetricCard icon={fall ? "66f42.svg" : "b3250.svg"} title={["Aktivitas", "Saat Ini"]} value={activity} compact={activity.length > 12} tone={fall ? "red" : active && state !== "standby" ? state === "inactive" ? "yellow" : "green" : "slate"} note={active && snapshot?.fall_confidence != null ? `Skor jatuh: ${(snapshot.fall_confidence * 100).toFixed(0)}%` : "Skor jatuh: --"} />
-      <MetricCard icon="f10af.svg" title={["Laju", "Pernapasan"]} value={bpm ?? "--"} tone="purple" note={bpm != null ? `${breathingNote} · napas/menit` : breathingNote} />
+      {!isPiKeyboardDemo(snapshot) && <MetricCard icon="f10af.svg" title={["Laju", "Pernapasan"]} value={bpm ?? "--"} tone="purple" note={bpm != null ? `${breathingNote} · napas/menit` : breathingNote} />}
       <MetricCard icon="a6422.svg" title={["Durasi", "Inaktivitas"]} value={duration(active ? snapshot?.stationary_duration_s : null)} tone="orange" note="Durasi diam teramati" />
       <MetricCard icon="01cd2.svg" title={["Kualitas", "Sinyal"]} value={quality == null ? "--" : quality >= 70 ? "Baik" : quality >= 40 ? "Cukup" : "Lemah"} tone="green" note={quality == null ? "Belum tersedia" : `Kualitas: ${quality.toFixed(0)}%`} />
-      <MetricCard icon="e8479.svg" title={["Edge", "Processor"]} value={active ? snapshot?.source === "simulator" ? "Simulasi" : "Online" : "Offline"} tone="teal" note="Raspberry Pi 4B" />
+      <MetricCard icon="e8479.svg" title={["Edge", "Processor"]} value={active ? snapshot?.source === "simulator" && !isPiKeyboardDemo(snapshot) ? "Simulasi" : "Online" : "Offline"} tone="teal" note="Raspberry Pi 4B" />
       <MetricCard icon={state === "critical" ? "631b6.svg" : "f8f09.svg"} title={["Status", "Notifikasi"]} value={notificationValue} compact={notificationValue.length > 12} tone={state === "critical" ? "red" : "yellow"} note={notificationNote} />
     </div>
   );
@@ -157,7 +163,7 @@ function ActivityChart({ snapshot, motion, now, onHistory }: { snapshot: Snapsho
   const today = new Date(now).toDateString();
   const events = snapshot?.events?.filter(event => new Date(event.timestamp_s * 1000).toDateString() === today).sort((a, b) => a.timestamp_s - b.timestamp_s).slice(-5) || [];
   return <section className="card activity-chart">
-    <div className="chart-heading"><div><h3>Grafik Aktivitas</h3><p>Berdasarkan intensitas sinyal CSI</p></div><div className="range-selector"><select aria-label="Rentang waktu grafik" value={range} onChange={event => setRange(Number(event.target.value))}><option value={60}>1 Menit</option><option value={300}>5 Menit</option><option value={3600}>1 Jam</option></select><DesignIcon file="7d576.svg" /></div></div>
+    <div className="chart-heading"><div><h3>{isPiKeyboardDemo(snapshot) ? "Grafik Sinyal CSI" : "Grafik Aktivitas"}</h3><p>Berdasarkan intensitas sinyal CSI</p></div><div className="range-selector"><select aria-label="Rentang waktu grafik" value={range} onChange={event => setRange(Number(event.target.value))}><option value={60}>1 Menit</option><option value={300}>5 Menit</option><option value={3600}>1 Jam</option></select><DesignIcon file="7d576.svg" /></div></div>
     <MotionChart values={samples.map(row => row.value)} state={snapshot?.state} />
     {samples.length > 1 && <div className="chart-tooltip"><time>{shortTime(samples[samples.length - 1].time)}</time><span><b>Aktivitas: </b>{snapshot?.activity || "Belum tersedia"}</span></div>}
     <div className="activity-summary"><h4>Ringkasan Aktivitas Hari Ini</h4><div className="activity-chips">{events.length ? events.map(event => { const state = eventState(event.state); return <button className={`activity-chip ${state}`} key={event.event_uid} onClick={onHistory}><DesignIcon file={state === "inactive" ? "d62dc.svg" : state === "critical" || state === "anomaly" ? "edec1.svg" : "b594a.svg"} /><div><time>{shortTime(event.timestamp_s)}</time><span>{states[state].label}</span></div></button>; }) : <p className="activity-empty">Belum ada aktivitas tercatat hari ini.</p>}</div></div>
@@ -182,6 +188,6 @@ export function DashboardHome({ snapshot, active, name, room, now, motion, onAle
 export function ConnectionIndicator({ snapshot, active }: { snapshot: Snapshot | null; active: boolean }) {
   return <span className={`connection-pill ${active ? "online" : "offline"}`}>
     {active ? <DesignIcon file={snapshot?.state === "critical" ? "39f6d.svg" : "ae9b7.svg"} /> : <WifiOff size={14} />}
-    {snapshot?.source === "simulator" ? "Simulasi" : snapshot?.source === "replay" ? "Replay rekaman" : active ? snapshot?.state === "standby" ? "Perangkat Siaga" : "Perangkat Online" : "Perangkat Offline"}
+    {snapshot?.source === "simulator" && !isPiKeyboardDemo(snapshot) ? "Simulasi" : snapshot?.source === "replay" ? "Replay rekaman" : active ? snapshot?.state === "standby" ? "Perangkat Siaga" : "Perangkat Online" : "Perangkat Offline"}
   </span>;
 }

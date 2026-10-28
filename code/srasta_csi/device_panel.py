@@ -15,8 +15,8 @@ import threading
 import time
 import urllib.request
 
-LED_PINS = {"red": 17, "yellow": 27, "green": 22}  # physical 11, 13, 15
-BUZZER_PIN = 18  # physical 12
+LED_PINS = {"red": 27, "yellow": 22, "green": 17}  # physical 13, 15, 11
+BUZZER_PIN = 16  # physical 36
 URL = "http://127.0.0.1:8000/api/caregiver"
 MAX_AGE = 3.0
 

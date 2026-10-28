@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import Mock
 
-from srasta_csi.device_panel import Hardware, Indicator, LED_PINS, buzzer_gate, select_indicator
+from srasta_csi.device_panel import BUZZER_PIN, Hardware, Indicator, LED_PINS, buzzer_gate, select_indicator
 
 
 def live(score=.4):
@@ -66,7 +66,8 @@ class HardwareTests(unittest.TestCase):
     def test_red_yellow_green_offline_exclusive_outputs_and_silent_disconnect(self):
         hw = Hardware(self.gpio, self.device, buzzer_mode="passive")
         try:
-            for level, pin in [("red", 17), ("yellow", 27), ("green", 22)]:
+            self.gpio.PWM.assert_called_once_with(16, 2000)
+            for level, pin in [("red", 27), ("yellow", 22), ("green", 17)]:
                 hw.update(Indicator(level, level), 0)
                 self.assertEqual(self.pins[pin], 1)
             hw.update(Indicator("red", "INDIKASI JATUH"), 0)
@@ -79,11 +80,11 @@ class HardwareTests(unittest.TestCase):
         self.gpio.PWM.return_value.stop.assert_called_once()
         self.gpio.cleanup.assert_called_once()
 
-    def test_buzzer_off_does_not_claim_pin_eighteen(self):
+    def test_buzzer_off_does_not_claim_buzzer_pin(self):
         hw = Hardware(self.gpio, self.device, buzzer_mode="off")
         hw.update(Indicator("red", "INDIKASI JATUH"), 0)
         hw.close()
-        self.assertNotIn(18, hw.claimed)
+        self.assertNotIn(BUZZER_PIN, hw.claimed)
         self.gpio.PWM.assert_not_called()
 
     def test_cleanup_releases_gpio_even_when_pwm_fails(self):

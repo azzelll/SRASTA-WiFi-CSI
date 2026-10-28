@@ -48,6 +48,8 @@ import { DashboardHome, DesignIcon, ConnectionIndicator, figmaAsset } from "./da
 import { EventCard } from "./event-detail";
 import { mergeReceipts } from "./receipts";
 import { coalesceRefresh } from "./refresh";
+import { isPiKeyboardDemo } from "./keyboard-demo-state";
+import { piVideoPresentation } from "./keyboard-demo-presentation";
 export { StatusCard, MotionChart } from "./dashboard";
 
 type Page = "home" | "alerts" | "history" | "event" | "devices" | "settings" | "about";
@@ -93,6 +95,8 @@ export function App() {
   const actionScope = useRef("");
   actionScope.current = `${userEmail || (publicAccess ? "public" : "local")}:${deviceId}`;
   const active = isFresh(snapshot, receivedAt, now);
+  const videoPresentation = piVideoPresentation(snapshot, active, now);
+  const displaySnapshot = videoPresentation?.snapshot || snapshot;
   const events = snapshot?.events || [];
   const alerts = events.filter(isAlert).sort((a, b) =>
     Number(b.event_uid === notificationTarget.current.event) - Number(a.event_uid === notificationTarget.current.event) ||
@@ -167,6 +171,7 @@ export function App() {
   }, [userEmail]);
   useEffect(() => {
     let cancelled = false;
+    let piDemo = false;
     setSnapshot(null);
     setMotion([]);
     setReceipts([]);
@@ -184,6 +189,7 @@ export function App() {
               : null
             : await localSnapshot();
         if (cancelled) return;
+        piDemo = isPiKeyboardDemo(next);
         setSnapshot(previous => previous && next && previous.updated_at_s > next.updated_at_s ? previous : next);
         setReceivedAt(Date.now());
         setConnectionError("");
@@ -197,9 +203,12 @@ export function App() {
     }
     if (remoteAccess && ((!publicAccess && !userEmail) || !deviceId)) return;
     const poller = coalesceRefresh(readSnapshot);
-    const refresh = () => { void poller.request(); };
+    let lastRefresh = 0;
+    const refresh = () => { lastRefresh = Date.now(); void poller.request(); };
     refresh();
-    const interval = setInterval(refresh, remoteAccess ? 5000 : 3000);
+    const interval = setInterval(() => {
+      if (Date.now() - lastRefresh >= (remoteAccess ? piDemo ? 1000 : 5000 : 3000)) refresh();
+    }, 1000);
     const source =
       accessMode === "local" ? new EventSource("/api/caregiver/stream") : null;
     source?.addEventListener("snapshot", (event) => {
@@ -492,7 +501,7 @@ export function App() {
               {connectionError}
             </div>
           )}
-          {snapshot?.simulation && (
+          {snapshot?.simulation && !isPiKeyboardDemo(snapshot) && (
             <div className="simulation-banner">
               <Radio size={18} />
               <strong>
@@ -501,8 +510,7 @@ export function App() {
                   : "MODE SIMULASI"}
               </strong>
               <span>
-                Hasil ini untuk pengujian. Status tidak membuktikan kejadian
-                dari CSI langsung.
+                Hasil ini untuk pengujian. Status tidak membuktikan kejadian dari CSI langsung.
               </span>
             </div>
           )}
@@ -536,7 +544,7 @@ export function App() {
               </p>
             </div>
           )}
-          {page === "home" && <DashboardHome snapshot={snapshot} active={active} name={profile.name} room={profile.room} now={now} motion={motion} onAlerts={() => setPage("alerts")} onHistory={() => setPage("history")} />}
+          {page === "home" && <DashboardHome snapshot={displaySnapshot} active={active} name={profile.name} room={profile.room} now={now} motion={videoPresentation?.motion || motion} onAlerts={() => setPage("alerts")} onHistory={() => setPage("history")} />}
           {page === "alerts" && (
             <>
               <div className="intro">
@@ -690,7 +698,7 @@ export function App() {
                 {page === "devices" && <section className="card">
                   <h3>Status perangkat</h3>
                   {remoteAccess && <label>Perangkat<select value={deviceId} onChange={e => setDeviceId(e.target.value)}>{devices.map(device => <option key={device.id} value={device.id}>{device.label}</option>)}</select></label>}
-                  <HealthRow icon={Wifi} label="Edge processor" ok={active && snapshot?.source === "live"} value={active ? snapshot?.source === "simulator" ? "Simulasi" : "Online" : "Offline"} />
+                  <HealthRow icon={Wifi} label="Edge processor" ok={active && (snapshot?.source === "live" || isPiKeyboardDemo(snapshot))} value={active ? snapshot?.source === "simulator" && !isPiKeyboardDemo(snapshot) ? "Simulasi" : "Online" : "Offline"} />
                   <HealthRow icon={Radio} label="Receiver CSI" {...receiverStatus(snapshot, active)} />
                   <HealthRow icon={Camera} label="Validasi kamera" ok={active && !!snapshot?.camera.available} value={!active ? "Status belum terkini" : snapshot?.camera.active ? "Sedang memvalidasi" : snapshot?.camera.available ? "Siap saat anomali" : "Belum tersedia"} />
                   <HealthRow icon={Bell} label="Alarm lokal" ok={active && !!snapshot?.alarm.available} value={!active ? "Status belum terkini" : snapshot?.alarm.active ? "Berbunyi" : snapshot?.alarm.available ? "Siap" : "Belum tersedia"} />
@@ -704,26 +712,26 @@ export function App() {
                   <dl className="metrics">
                     <dt>Mode akses</dt>
                     <dd>{publicAccess ? "Jarak jauh tanpa login" : remoteAccess ? "Jarak jauh" : "Lokal"}</dd>
-                    <dt>Sumber data</dt>
-                    <dd>{snapshot?.source || "Belum tersedia"}</dd>
+                    {!isPiKeyboardDemo(snapshot) && <><dt>Sumber data</dt>
+                    <dd>{snapshot?.source || "Belum tersedia"}</dd></>}
                     <dt>Paket valid</dt>
                     <dd>
-                      {snapshot?.accepted_frames.toLocaleString("id-ID") || 0}
+                      {displaySnapshot?.accepted_frames.toLocaleString("id-ID") || 0}
                     </dd>
                     <dt>Laju penerimaan</dt>
-                    <dd>{snapshot?.capture_rate_hz ?? 0} Hz</dd>
+                    <dd>{displaySnapshot?.capture_rate_hz ?? 0} Hz</dd>
                     <dt>Kehilangan paket</dt>
                     <dd>
-                      {snapshot?.packet_loss_rate != null
-                        ? (snapshot.packet_loss_rate * 100).toFixed(1) + "%"
+                      {displaySnapshot?.packet_loss_rate != null
+                        ? (displaySnapshot.packet_loss_rate * 100).toFixed(1) + "%"
                         : "Belum diukur"}
                     </dd>
                     <dt>Paket dikarantina</dt>
                     <dd>{snapshot?.quarantined_frames || 0}</dd>
                     <dt>Inferensi</dt>
                     <dd>
-                      {snapshot?.inference_ms != null
-                        ? snapshot.inference_ms.toFixed(1) + " ms"
+                      {displaySnapshot?.inference_ms != null
+                        ? displaySnapshot.inference_ms.toFixed(1) + " ms"
                         : "Belum tersedia"}
                     </dd>
                     <dt>Reconnect RX</dt>
@@ -731,7 +739,7 @@ export function App() {
                     <dt>Data CSI terakhir</dt>
                     <dd>{formatTime(snapshot?.observed_at_s || null)}</dd>
                   </dl>
-                  <div className="model-note">
+                  {!isPiKeyboardDemo(snapshot) && <div className="model-note">
                     <strong>{snapshot?.model.label || "Model edge"}</strong>
                     <p>{snapshot?.model.validation || "Menunggu edge."}</p>
                     <small>
@@ -739,7 +747,7 @@ export function App() {
                       memerlukan model yang tervalidasi. Estimasi napas dan
                       kamera memiliki gerbang kualitas sendiri.
                     </small>
-                  </div>
+                  </div>}
                 </section>}
                 {page === "settings" && <section className="card">
                   <h3>Notifikasi</h3>
@@ -784,7 +792,7 @@ export function App() {
             </>
           )}
           {page === "about" && <section className="card about-system"><h2>Tentang SRASTA</h2><p>Sistem Monitoring Keselamatan Lansia Berbasis WiFi CSI dan Edge AI.</p><h3>Pemantauan di rumah</h3><p>CSI digunakan untuk membaca keberadaan, gerakan, durasi diam, indikasi jatuh, dan pola pernapasan. Raspberry Pi memproses data secara lokal.</p><h3>Validasi saat diperlukan</h3><p>Kamera hanya digunakan untuk memeriksa postur saat anomali. App menerima ringkasan dan koordinat skeleton yang terikat ke kejadian. Gambar kamera dan CSI mentah tetap di edge. Skeleton adalah cuplikan saat kejadian, bukan video langsung; postur berbaring belum memastikan tidur atau jatuh.</p><h3>Membaca kondisi</h3><p>Siaga, normal, inaktif, anomali, dan kritis ditampilkan sesuai data edge. Saat data berhenti, kondisi terakhir tetap terlihat dan pemantauan ditandai offline.</p><h3>Periksa hasil sebelum bertindak</h3><p>Model masih memerlukan validasi lingkungan. Estimasi napas merupakan indikasi pola, bukan diagnosis.</p></section>}
-          {snapshot?.source === "simulator" && accessMode === "local" && (
+          {snapshot?.source === "simulator" && !isPiKeyboardDemo(snapshot) && accessMode === "local" && (
             <details className="demo-controls">
               <summary>Pengendali pengujian · simulasi</summary>
               <p>

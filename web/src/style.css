@@ -113,6 +113,12 @@ svg { flex-shrink: 0; }
 .pose-unavailable > span { font-size: 28px; line-height: 28px; color: #9aadc5; }
 .pose-unavailable > p { margin: 0; font-size: 11px; line-height: 16px; }
 .metric-grid { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 16px; margin: 22px 19px 22px 0; }
+.video-camera .camera-result { grid-template-columns: minmax(0,3fr) minmax(100px,2fr); }
+.video-camera .pose-bones { stroke: #e11d28; }
+.video-camera .pose-joints { fill: #e11d28; }
+.camera-empty > .video-camera-idle { display: grid; place-items: center; padding: 0; font-size: 54px; color: #64748b; }
+@media (min-width: 1081px) { .metric-grid.video-metrics { grid-template-columns: repeat(5,minmax(0,1fr)); } }
+@media (max-width: 720px) { .video-metrics .metric-card:last-child { grid-column: 1 / -1; } }
 .metric-card { height: 158px; padding: 16px 18px 12px 16px; text-align: center; }
 .metric-title { display: flex; gap: 12px; align-items: flex-start; text-align: left; }
 .metric-title h3 { font-size: 14px; line-height: 17px; margin-top: 2px; }

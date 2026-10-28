@@ -1,11 +1,33 @@
 # Handoff SRASTA — diperbarui 23 Oktober 2026
 
+Audit 28 Oktober: [jumlah rekaman/window dan pembagian data model fall](docs/DATA_MODEL_AUDIT.md)
+memisahkan sumber CSI-Bench, eksperimen tim, cross-validation development, dan
+held-out lokal yang belum tersedia. [Verifikasi sinkronisasi main](docs/evidence/20261028-main-sync.md).
+
+Pembaruan data/model lokal 26 Oktober: 25 sesi sudah direview dan accepted
+(12 fall, 5 presence, 8 empty). Persetujuan tim untuk penggunaan 13 sesi lama
+dicatat terpisah dengan hash; config dan raw asli tidak diedit. Loader membaca
+koreksi kelompok A/B/C sebelum pembentukan window. Fine-tuning head TCN
+menghasilkan recall/specificity window OOF 36,1%/71,6% versus v8 0%/100%
+pada window yang sama; kandidat tidak dipromosikan karena specificity turun.
+Ini eksperimen train/development, bukan validasi baru. Orang D baru siap
+direkam; E belum tersedia untuk test. Lihat
+[prosedur pengembangan lokal](docs/LOCAL_CAPTURE_DEVELOPMENT.md).
+
 Dokumen masuk untuk anggota tim dan AI penerus. Ini snapshot software dan
 bukti yang tersedia, bukan pernyataan seluruh produk sudah tervalidasi.
 Pembaruan Pi terbaru: [operasi Pi](docs/PI_OPERATIONS.md) dan
 [bukti 22 Oktober](docs/evidence/20261022-pi-deployment.md). Cabang utama kini
 `main`; handoff dan panel Pi digabung melalui PR #2 pada 23 Oktober.
 [Bukti integrasi software](docs/evidence/20261023-main-integration.md).
+
+Prioritas terbaru pemilik: **fall → dataset lokal → presence → validasi →
+uji pengalaman**; ketahanan dinyatakan sudah pass oleh pemilik. Engineering
+offline fall 23 Oktober selesai menjalankan diagnosis dan 36 fitting grouped;
+kandidat Hampel raw ditolak. V8 tetap demo. Recorder ADL/motion/four-boundary
+fall, QA dan evaluator event telah disiapkan, tetapi belum diuji capture fisik
+di checkpoint ini. Mulai dari [hasil dan handoff data](docs/FALL_ENGINEERING_HANDOFF.md)
+dan [bukti software](docs/evidence/20261023-fall-engineering.md).
 
 Pembaruan web 23 Oktober: mode `public` langsung membuka dashboard tanpa login,
 termasuk Akui/Minta bantuan. Perangkat dipilih admin melalui RPC terbatas;
@@ -192,18 +214,20 @@ push HP atau mutu CSI hari ini. Jangan mengirim event palsu ke production.
 3. **Kumpulkan nonfall accepted**: guided CLI, beberapa orang dengan split
    tetap yang terpisah, pengamat independen, provenance/protokol lengkap.
    Prosedur di [capture quickstart](docs/CAPTURE_QUICKSTART.md).
-4. **Lengkapi recorder/protokol** untuk awake-lying vs natural sleep,
-   transisi bergerak–diam–bergerak dan ADL panjang; tambah schema, tests dan
-   anotasi yang membedakan sleep/inactive sebelum merekamnya. Siapkan event
-   jatuh beranotasi hanya di bawah prosedur aman terawasi yang disetujui.
-5. **Latih/kalibrasi** presence lokal ketika train/validation accepted cukup;
-   tangani domain shift dan perbaiki fall dari train/validation. Bekukan
+4. **Pakai protokol recorder baru** `adl`, `motion` dan `fall-observer`
+   sesuai [handoff fall](docs/FALL_ENGINEERING_HANDOFF.md). Awake-lying vs
+   natural sleep masih memerlukan referensi/anotasi yang membedakan sleep
+   dan inactive; jangan mengubah label diam menjadi tidur. Event jatuh hanya
+   di bawah prosedur aman terawasi yang disetujui.
+5. **Latih/kalibrasi** fall lokal terlebih dahulu, kemudian presence ketika
+   train/validation accepted cukup dan domain telah diperiksa. Bekukan
    threshold/preprocessing sebelum test baru. Laporkan confusion matrix,
    interval ketidakpastian, event recall dan FAR dari exposure direview;
    jangan mengganti label atau split setelah melihat prediksi.
 6. **Lanjutkan acceptance Pi yang sudah diperbarui**: sambungkan RX UART/COM
    dan daya TX, uji CSI nyata + kamera event-only + skeleton event UID yang
-   sama pada caregiver. Uji reboot/offline/reconnect/ACK/push pada HP.
+   sama pada caregiver. Uji kejadian/ACK/push pada HP. Pemilik menyatakan
+   ketahanan pass; tidak perlu mengulang seluruh suite ketahanan di tahap ini.
    Acceptance ARM dan satu burst kamera terisolasi sudah lolos pada 22 Oktober;
    ini belum membuktikan seluruh jalur kejadian. Periksa alarm fisik terpisah.
    Jangan menimpa service secara buta; backup/rollback ada di panduan operasi.

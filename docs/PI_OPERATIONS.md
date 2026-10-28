@@ -92,6 +92,33 @@ dibagikan. Credential ada di `~/srasta-edge/edge.env` mode 0600, jangan dicetak.
 
 ## Kamera diagnostik, tanpa alert production
 
+Orientasi dudukan diperbarui 26 Oktober 2026 atas permintaan pemilik:
+`camera_capture.py` memutar gambar **180 derajat** sebelum letterbox dan
+inferensi MoveNet. RGB, pandangan penuh dan bentuk input 192x192 dipertahankan.
+Untuk foto manual dengan orientasi yang sama, gunakan
+`rpicam-still --nopreview --rotation 180 --timeout 2000 --output /tmp/srasta-camera-180.jpg`.
+Tes `test_camera_capture.py` memakai Python OS dengan NumPy/Pillow; tes
+`test_camera.py` memakai venv inferensi dengan dependensi backend.
+
+Tes orang dan skeleton dari terminal **laptop Mac**, sebelum masuk SSH:
+
+```bash
+cd "/Users/Shandy/Documents/Lomba/GEMASTIK/IoT/SRASTA_CSI_Bench_Blynk"
+bash scripts/test_camera_skeleton.sh --prepare 10
+```
+
+Berdiri normal dengan kepala sampai kaki terlihat kamera dan cahaya cukup.
+Sesudah countdown, skrip memakai key Pi lokal yang sudah terdaftar, menjeda
+service edge, dan menjalankan burst tiga frame dengan MoveNet pada runtime
+aktif. Service dipulihkan otomatis. Laptop membuka `skeleton.html`; ringkasan
+`result.json` disimpan di `artifacts/private/camera-skeleton/CAM_*/` yang ignored.
+Hanya koordinat terukur yang dibawa ke laptop, tanpa foto atau alert produksi.
+Titik berskor di bawah 0,30 dan tulang yang terhubung ke titik tersebut tidak
+digambar; pose yang terlalu sedikit/berimpit tampil sebagai belum jelas.
+Ini satu cuplikan skeleton dari burst, bukan video langsung atau bukti akurasi.
+Gunakan `--no-open` untuk menyimpan laporan saja; `--key` dan `--host` tersedia
+jika akses SSH berbeda. Tidak perlu jatuh saat tes.
+
 Kamera tetap idle sampai ada kejadian model terkini. Preview kamera lain harus
 ditutup sebelum tes. Jalankan blok ini di Pi; ia memulihkan layanan jika
 sebelumnya aktif, termasuk ketika tes gagal. Output memuat koordinat pose,

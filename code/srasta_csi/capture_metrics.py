@@ -58,6 +58,70 @@ def contains(intervals, stamp):
     return any(start <= stamp < end for start, end in intervals)
 
 
+def fall_event_report(path):
+    """One-to-one suspicion matching within a fixed 8 s of observer onset.
+
+    Data loss is reported as unavailable coverage, never as successful recall.
+    Confirmation is a separate outcome after >=10 s post-event stillness.
+    Keyboard annotations retain the observer's reaction-time uncertainty.
+    """
+    path = Path(path)
+    config = json.loads((path / "capture_config.json").read_text())
+    base = {"session_id": config["session_id"], "split": config["split"],
+            "model_sha256": config.get("model_sha256"), "latency_budget_s": 8.,
+            "latency_scope": "RX observer onset to local prediction, not cloud/phone notification",
+            "confirmation_min_stillness_s": 10., "final_model_target_proven": False,
+            "boundary_precision": "observer RX-clock marks; human reaction uncertainty is not measured"}
+    qa = qa_capture(path)
+    if qa["status"] != "accepted" or config["split"] == "pilot":
+        return {**base, "available": False, "reason": "accepted non-pilot annotations required", "event_recall": None}
+    events = [e for e in reviewed_events(path, config) if e["review_status"] == "reconciled" and e["event_type"] == "fall"]
+    predictions = read_jsonl(path / "predictions.jsonl")
+    max_gap = max(.5, config.get("prediction_interval_s", .2) * 3) * 1e6
+    coverage = merge_intervals([(a["timestamp_monotonic_us"], b["timestamp_monotonic_us"] + 1)
+        for a, b in zip(predictions, predictions[1:]) if 0 < b["timestamp_monotonic_us"] - a["timestamp_monotonic_us"] <= max_gap])
+    coverage = subtract_intervals(coverage, qa["gap_intervals_us"])
+    used = set(); records = []
+    for event in sorted(events, key=lambda e: e["onset_monotonic_us"]):
+        onset = event["onset_monotonic_us"]
+        end = onset + 8_000_000
+        eligible = (event["post_event_inactivity_end_monotonic_us"] >= end and
+                    any(a <= onset and b >= end for a, b in coverage))
+        matched = next((p for p in predictions if p.get("alert_start") and p.get("alert_id")
+                        and p["alert_id"] not in used and onset <= p["timestamp_monotonic_us"] <= end), None) if eligible else None
+        if matched:
+            used.add(matched["alert_id"])
+        stationary = event["post_event_inactivity_start_monotonic_us"]
+        stationary_end = event["post_event_inactivity_end_monotonic_us"]
+        confirmation_eligible = (stationary_end - stationary >= 10_000_000 and
+                                any(a <= stationary and b >= stationary_end for a, b in coverage))
+        confirmations = [p for p in predictions if matched and p.get("alert_id") == matched["alert_id"]
+                         and p["state"] == "confirmed_fall" and onset <= p["timestamp_monotonic_us"] <= stationary_end]
+        first_confirmation = confirmations[0] if confirmations else None
+        premature = bool(first_confirmation and first_confirmation["timestamp_monotonic_us"] < stationary + 10_000_000)
+        records.append({"event_id": event["event_id"], "eligible": eligible,
+                        "reason": None if eligible else "full 8 s labelled post-onset interval or packet/inference coverage missing",
+                        "detected": bool(matched) if eligible else None,
+                        "alert_id": matched["alert_id"] if matched else None,
+                        "suspected_latency_s": (matched["timestamp_monotonic_us"] - onset) / 1e6 if matched else None,
+                        "confirmation_eligible": confirmation_eligible,
+                        "confirmed": bool(first_confirmation and not premature) if confirmation_eligible else None,
+                        "premature_confirmation": premature,
+                        "confirmed_latency_s": (first_confirmation["timestamp_monotonic_us"] - onset) / 1e6 if first_confirmation else None})
+    eligible = [r for r in records if r["eligible"]]
+    hits = sum(r["detected"] for r in eligible)
+    interval = None
+    if eligible:
+        from scipy.stats import beta
+        n = len(eligible)
+        interval = [float(beta.ppf(.025, hits, n-hits+1)) if hits else 0.,
+                    float(beta.ppf(.975, hits+1, n-hits)) if hits < n else 1.]
+    return {**base, "available": bool(eligible), "reviewed_falls": len(events), "eligible_falls": len(eligible),
+            "coverage_excluded_falls": len(events) - len(eligible), "detected_falls": hits,
+            "missed_falls": len(eligible) - hits, "event_recall": hits / len(eligible) if eligible else None,
+            "binomial_exact_95_interval": interval, "events": records}
+
+
 def false_alert_report(path):
     """Count one episode once; suspicion -> confirmation isn't another alert."""
     path = Path(path)

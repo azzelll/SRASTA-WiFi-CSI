@@ -10,9 +10,9 @@ import time
 
 
 def movenet_image(rgb):
-    """Letterbox the full camera view without changing torso aspect ratio."""
+    """Correct the upside-down mount, then letterbox the full camera view."""
     from PIL import Image, ImageOps
-    image = Image.fromarray(rgb)
+    image = Image.fromarray(rgb).transpose(Image.Transpose.ROTATE_180)
     return ImageOps.pad(image, (192, 192), method=Image.Resampling.BILINEAR, color=(0, 0, 0))
 
 

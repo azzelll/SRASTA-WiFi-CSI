@@ -26,13 +26,13 @@ export function poseTitle(outcome: CameraValidation["outcome"]) {
     outcome === "error" ? "Kamera terhambat" : "Postur belum jelas";
 }
 
-export function PoseSkeleton({ pose, outcome }: { pose: CameraPose | null | undefined; outcome: CameraValidation["outcome"] }) {
+export function PoseSkeleton({ pose, outcome, label, description }: { pose: CameraPose | null | undefined; outcome: CameraValidation["outcome"]; label?: string; description?: string }) {
   const geometry = outcome !== "error" ? poseGeometry(pose) : null;
   return (
     <div className={`pose-viewer ${geometry ? "has-pose" : "no-pose"}`}>
       {geometry ? (
-        <svg viewBox="0 0 192 192" role="img" aria-label={`Skeleton dari kamera: ${poseTitle(outcome)}`}>
-          <desc>Koordinat tubuh pada satu cuplikan saat kejadian. Titik dengan skor rendah tidak ditampilkan.</desc>
+        <svg viewBox="0 0 192 192" role="img" aria-label={label || `Skeleton dari kamera: ${poseTitle(outcome)}`}>
+          <desc>{description || "Koordinat tubuh pada satu cuplikan saat kejadian. Titik dengan skor rendah tidak ditampilkan."}</desc>
           <path className="pose-frame" d="M12 35V12h23M157 12h23v23M180 157v23h-23M35 180H12v-23" aria-hidden="true" />
           <g className="pose-bones">
             {geometry.bones.map(([start, end]) => {

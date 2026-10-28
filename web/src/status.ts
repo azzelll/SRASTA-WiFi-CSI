@@ -1,4 +1,5 @@
 import type { CareEvent, Snapshot, SystemState } from './types';
+import { isPiKeyboardDemo } from './keyboard-demo-state';
 export const states: Record<SystemState,{label:string;description:string}> = {
  standby:{label:'Siaga',description:'Belum ada keberadaan orang yang terkonfirmasi.'},
  normal:{label:'Aktivitas normal',description:'Terus pantau aktivitas dan kondisi terkini.'},
@@ -24,6 +25,7 @@ export function cameraNote(camera:Snapshot['camera']|undefined,event:CareEvent):
 }
 
 export function receiverStatus(snapshot:Snapshot|null,active:boolean):{ok:boolean;value:string} {
+ if(isPiKeyboardDemo(snapshot)) return {ok:false,value:active?'Belum tersedia':'Status belum terkini'};
  if(snapshot?.source==='simulator') return {ok:false,value:'Tidak dipakai di simulasi'};
  if(snapshot?.source==='replay') return {ok:false,value:'Replay rekaman'};
  const flowing=active && snapshot?.source==='live' && !!snapshot.serial_connected;

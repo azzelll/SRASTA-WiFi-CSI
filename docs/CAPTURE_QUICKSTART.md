@@ -7,6 +7,12 @@ Runtime Pi sudah diperbarui 22 Oktober; perintah service dan cara memeriksa
 RX ada di [PI_OPERATIONS.md](PI_OPERATIONS.md). Pembaruan runtime tidak
 mengubah prosedur atau status acceptance data lokal di panduan ini.
 
+Tambahan engineering **23 Oktober**: default tiga kondisi tetap tersedia;
+opsi `--protocol adl`, `motion` dan `fall-observer` menambah pengambilan
+nonfall panjang, gerak–diam–gerak dan empat tanda waktu fall oleh pengamat.
+Command dan urutan berikutnya: [handoff fall](FALL_ENGINEERING_HANDOFF.md).
+Mode tambahan diuji software; capture fisiknya belum dilakukan di checkpoint ini.
+
 ## 1. Hubungkan perangkat dan cek sumber
 
 1. Board berlabel **RX** memakai konektor **UART/COM** ke komputer yang
@@ -131,6 +137,62 @@ bash scripts/collect_local_csi.sh --port "$SRASTA_RX_PORT" \
 `--duration` minimum 60 detik. Memanjangkan sesi tiga kondisi ini belum sama
 dengan protokol ADL bebas sepanjang hari atau sleep dengan anotasi referensi.
 
+### Ruangan kosong saja, tanpa paket tiga kondisi
+
+Untuk merekam kosong selama 30 menit utuh:
+
+```bash
+bash scripts/collect_local_csi.sh --protocol empty --duration 1800 --prepare 30
+```
+
+Mode `empty` hanya merekam satu kondisi `no_person`, kemudian selesai. Ia
+tetap memakai form sesi, clock RX, konfirmasi pengamat, QA dan review independen.
+Tanpa `--root`, hasil masuk ke `../SRASTA_LOCAL_CAPTURE`, di luar repo.
+Semua orang keluar selama persiapan; tunggu bunyi akhir sebelum kembali.
+Jika kondisi kosong tidak benar sepanjang interval, jawab `n` saat konfirmasi;
+raw tetap disimpan sebagai bukti, bukan diberi label kosong yang keliru.
+
+Rencana praktis: blok utuh 20–30 menit, diulang pada waktu/hari berbeda.
+Tidak perlu mengulang empty hanya karena peserta berganti. Untuk target
+empat jam, delapan blok 30 menit adalah pembagian durasi, bukan delapan
+pengamatan independen jika kondisi dan waktunya sama. Catat sesi/ruangan,
+tetapkan split sebelum capture, dan pertahankan posisi TX/RX dalam satu sesi.
+Kode orang pada form tetap mengikat kelompok sesi di registry; jangan
+memakai kode orang baru untuk menyalin kosong yang sama ke split lain.
+Seluruh window satu sesi harus tetap dalam satu split. Rekaman yang sama
+boleh digunakan oleh fitur berbeda dengan split yang sama; jangan
+menduplikasi kosong train ke validation/test. Window training diturunkan
+dari raw kontinu setelah QA, bukan dengan memotong atau mengubah file asli.
+
+### Presence saja: rekaman terpisah 10 menit
+
+Untuk merekam satu orang tetap berada di ruangan selama 10 menit:
+
+```bash
+bash scripts/collect_local_csi.sh --protocol presence --duration 600 --prepare 30
+```
+
+Mode ini tidak meminta tahap kosong. Orang yang sama harus tetap ada sepanjang
+interval, boleh bergerak ataupun diam, dan tetap terjaga. Tidak perlu terus
+berjalan. Tiga rekaman 10 menit dapat difokuskan pada aktivitas biasa,
+duduk diam, lalu berbaring nyaman sambil terjaga. Jalankan command tiga kali
+dan gunakan kode peserta/split yang sama untuk orang yang sama. Tiap run
+membuat folder sesi baru; perubahan konfigurasi/posisi TX/RX mengakhiri sesi.
+Jika peserta keluar atau kondisi tidak sesuai, jawab `n` saat konfirmasi.
+
+Arsip memakai event `nonfall_activity` (`normal`), yang dipetakan trainer
+presence menjadi `present`. Ini hanya anotasi okupansi/nonfall; ia tidak
+membuktikan gerak terus-menerus, durasi inaktif atau tidur. Untuk batas
+gerak/diam dan minimum diam 60 detik, gunakan mode `motion`/`basic` dan
+review intervalnya. Sleep memerlukan pengambilan/referensi tersendiri.
+
+Membagi 30 menit menjadi tiga file berurutan tidak membuat tiga subjek atau
+tiga hari independen. Prioritaskan variasi peserta, waktu dan kondisi yang
+tercatat; pengulangan dan window orang yang sama tetap di split yang sama.
+Mode presence tetap membutuhkan data empty yang diambil terpisah, QA dan
+review independen sebelum training. `--duration 1800` dapat dipakai untuk
+30 menit utuh; durasi lebih panjang tidak otomatis meningkatkan akurasi.
+
 ## 4. Hasil otomatis dan pemeriksaan
 
 ```text
@@ -175,6 +237,10 @@ Pengamat kedua yang **benar-benar menyaksikan kondisi** melakukan review:
 
 Review ditambahkan, bukan menimpa bukti awal; report berikutnya di `qa_reports/`.
 Panggilan reviewer tidak otomatis menyelesaikan provenance yang belum lengkap.
+Untuk persetujuan penggunaan rekaman lama yang baru diberikan tim sekarang,
+gunakan [jalur keputusan penggunaan terpisah](LOCAL_CAPTURE_DEVELOPMENT.md).
+Keputusan terikat hash arsip dan tidak mengubah config atau mengklaim izin
+sudah ada saat perekaman. Ini tidak menggantikan prosedur sesi baru.
 Tanpa review/coverage cukup, FAR unavailable, **bukan nol**. False alerts/hour
 berbeda dari specificity. Nol alert dalam 3 menit tidak membuktikan target
 ≤2/hari; batas atas Poisson 95% memerlukan sekitar 36 jam exposure eligible
@@ -197,12 +263,23 @@ systemctl --user status srasta-edge.service --no-pager
 | Breathing `sleep/normal/empty` | Empty lokal; kandidat publik yang sudah dilatih bisa untuk riset | Awake-lying dan tidur alami dengan anotasi observer/referensi sinkron; diam **tidak boleh diganti nama sleep** |
 | Fall | Nonfall sebagai pembanding; fall v8 tersedia untuk demo | Event jatuh terkontrol, aman, terawasi, referensi empat batas waktu dan review independen |
 
-CLI saat ini **tidak mempunyai mode sleep/fall terpandu**. AI penerus harus
-menambahkan protokol, anotasi/schema dan pengujiannya lebih dulu. Jatuh hanya
+CLI belum mempunyai mode sleep dengan referensi sinkron. Mode `fall-observer`
+mencatat empat tanda waktu pengamat pada clock RX, dengan ketidakpastian reaksi
+manusia dan review independen; lihat handoff fall di atas. Jatuh hanya
 oleh pelaksana dewasa terlatih dengan prosedur disetujui, pengawasan dan sarana
 sesuai; jangan meminta lansia atau orang tanpa pelatihan menjatuhkan diri.
 Empat timestamp wajib: onset, event end, post-event inactivity start dan end,
 pada clock RX yang sama. Detail: [`esp32_s3_capture_protocol.md`](esp32_s3_capture_protocol.md).
+
+Untuk ringkasan kesiapan train/validation tanpa membuka payload test/pilot:
+
+```bash
+.venv/bin/python code/tools/local_capture_readiness.py --root ../SRASTA_LOCAL_CAPTURE
+```
+
+Evaluator `code/tools/evaluate_local_alerts.py SES_PATH --fall-events` menghitung
+event recall dan latency prediksi lokal dari sesi fall accepted; default tanpa
+opsi tetap FAR nonfall. Keduanya tidak digunakan untuk tuning test.
 
 Trainer presence lokal sudah ada, tetapi menolak data belum accepted atau split
 bercampur. Setelah data mencukupi:
